@@ -35,6 +35,9 @@ A modular, extensible GUI for creating various types of plots from data files in
 ```
 
 ## Compilation
+```run
+rootcling -f ColumnSelectorDict.cpp -c ColumnSelector.h ColumnSelectorLinkDef.h
+```
 
 ### Simple compilation:
 ```bash
