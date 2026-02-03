@@ -1,7 +1,8 @@
+***********************************************************
 # Advanced ROOT Plotting GUI
 
 A modular, extensible GUI for creating various types of plots from data files in ROOT.
-
+***********************************************************
 ***********************************************************
 Initially develpoed and maintian by Dr. Siddharth Parashari
 ***********************************************************
