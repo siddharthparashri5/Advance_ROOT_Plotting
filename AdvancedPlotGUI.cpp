@@ -7,31 +7,31 @@
 #include <TGListBox.h>
 #include <TGComboBox.h>
 #include <TGLabel.h>
+#include <TGMsgBox.h>
 #include <TApplication.h>
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TCanvas.h>
 #include <TStyle.h>
-#include <iostream>
-#include <vector>
-#include <string>
 #include <RooRealVar.h>
 #include <RooDataHist.h>
 #include <RooGaussian.h>
 #include <RooPlot.h>
 #include <RooFitResult.h>
 #include <TH1.h>
+#include <iostream>
+#include <vector>
+#include <string>
 
 #include "DataReader.h"
 #include "ColumnSelector.h"
 #include "PlotTypes.h"
 #include "FitUtils.h"
+#include "ErrorHandling.h"
 
-//TSystem->Load("ColumnSelectorDict.so");
-
-
-////// Main GUI Class ///////
-
+// ==========================
+// Main GUI Class
+// ==========================
 class AdvancedPlotGUI : public TGMainFrame {
 private:
     // File selection
@@ -76,7 +76,7 @@ private:
 
 public:
     AdvancedPlotGUI(const TGWindow* p, UInt_t w, UInt_t h);
-    virtual ~AdvancedPlotGUI() {}
+    virtual ~AdvancedPlotGUI();
 
     void DoBrowse();
     void DoLoad();
@@ -229,11 +229,17 @@ AdvancedPlotGUI::AdvancedPlotGUI(const TGWindow* p, UInt_t w, UInt_t h)
     MapWindow();
 }
 
+// ==========================
+// Destructor
+// ==========================
+AdvancedPlotGUI::~AdvancedPlotGUI() {
+    // Cleanup is handled by TGMainFrame
+    // Additional cleanup can be added here if needed
+}
+
 /////// Browse for file  ////////
 
 void AdvancedPlotGUI::DoBrowse() {
-    //std::cout << "DoBrowse called" << std::endl;
-    
     TGFileInfo fi;
     const char* filetypes[] = {
         "Text files", "*.txt",
@@ -248,10 +254,7 @@ void AdvancedPlotGUI::DoBrowse() {
     new TGFileDialog(gClient->GetRoot(), this, kFDOpen, &fi);
 
     if (fi.fFilename && strlen(fi.fFilename) > 0) {
-        //std::cout << "Selected file: " << fi.fFilename << std::endl;
         fileEntry->SetText(fi.fFilename);
-    } else {
-        std::cout << "No file selected" << std::endl;
     }
 }
 
@@ -260,16 +263,18 @@ void AdvancedPlotGUI::DoBrowse() {
 void AdvancedPlotGUI::DoLoad() {
     const char* filename = fileEntry->GetText();
     if (!filename || strlen(filename) == 0) {
-        std::cout << "No file selected!" << std::endl;
+        ShowWarning(this, "No File", "Please select a file first.");
         return;
     }
     
     if (DataReader::ReadFile(filename, currentData)) {
-        //std::cout << "Loaded " << currentData.GetNumColumns() << " columns, "<< currentData.GetNumRows() << " rows" << std::endl;
         addPlotButton->SetEnabled(true);
         plotButton->SetEnabled(true);
+        ShowInfo(this, "Success",  Form("Loaded %d columns, %d rows",
+                                        currentData.GetNumColumns(),
+                                        currentData.GetNumRows()));
     } else {
-        std::cout << "Failed to load file!" << std::endl;
+        ShowError(this, "Error", "Failed to load file. Please check the file format.");
     }
 }
 
@@ -277,10 +282,8 @@ void AdvancedPlotGUI::DoLoad() {
 
 void AdvancedPlotGUI::DoAddPlot()
 {
-    //std::cout << "DoAddPlot called" << std::endl;
-
     if (currentData.GetNumColumns() == 0) {
-        std::cout << "No data loaded!" << std::endl;
+        ShowWarning(this, "No Data", "Please load a data file first.");
         return;
     }
 
@@ -288,18 +291,13 @@ void AdvancedPlotGUI::DoAddPlot()
     bool result = false;
 
     ColumnSelectorDialog* dialog = new ColumnSelectorDialog(
-            fMainFrame,      // parent
+            fMainFrame,
             &currentData,
             &config,
             &result
         );
 
-  
     gClient->WaitFor(dialog);
-
-    //std::cout << "Dialog closed, result=" << result << std::endl;
-
-    //delete dialog;
 
     if (!result) return;
 
@@ -347,9 +345,13 @@ void AdvancedPlotGUI::DoRemovePlot() {
 /////// Clear all plots ////////
 
 void AdvancedPlotGUI::DoClearAll() {
-    plotConfigs.clear();
-    plotListBox->RemoveAll();
-    plotListBox->Layout();
+    if (plotConfigs.empty()) return;
+    
+    if (ShowQuestion(this, "Confirm", "Clear all plot configurations?")) {
+        plotConfigs.clear();
+        plotListBox->RemoveAll();
+        plotListBox->Layout();
+    }
 }
 
 //////// Unified Fit Handler /////////
@@ -402,7 +404,10 @@ void ApplyFit(
 /////// Create plots ///////
 
 void AdvancedPlotGUI::DoPlot() {
-    if (plotConfigs.empty()) return;
+    if (plotConfigs.empty()) {
+        ShowWarning(this, "No Plots", "Please add at least one plot configuration first.");
+        return;
+    }
     
     bool sameCanvas = sameCanvasCheck->IsOn();
     bool dividedCanvas = dividedCanvasCheck->IsOn();
@@ -574,8 +579,6 @@ void AdvancedPlotGUI::DoPlot() {
 /////// Process messages ///////
 
 Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2) {
-    //std::cout << "ProcessMessage: msg=" << msg << " parm1=" << parm1 << " parm2=" << parm2 << std::endl;
-    
     switch (GET_MSG(msg)) {
         case kC_COMMAND:
             switch (GET_SUBMSG(msg)) {
