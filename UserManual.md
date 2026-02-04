@@ -80,23 +80,26 @@ Advanced ROOT Plotting is a graphical user interface application built on the RO
 git clone https://github.com/siddharthparashri5/Advance_ROOT_Plotting.git
 cd Advance_ROOT_Plotting
 
-# Create build directory
-mkdir build && cd build
+# Generate ROOT dictionary
+rootcling -f ColumnSelectorDict.cpp -c ColumnSelector.h ColumnSelectorLinkDef.h
 
-# Configure and build
-cmake ..
+# Configure and make
 make
 
 # Run the application
 ./AdvancedPlotGUI
 ```
 
-### Using ROOT Macros
+### Using ROOT while running the App
 
-Alternatively, you can run directly with ROOT:
+You can run directly with ROOT:
 
 ```bash
-root -l AdvancedPlotGUI.C
+For example ...
+
+root [0] gPad->ls();
+root [1] auto g = (TGraph*) gPad->GetPrimitive("Graph");
+root [2] g->Draw("LP");
 ```
 
 ---
@@ -138,7 +141,7 @@ root -l AdvancedPlotGUI.C
 
 #### Loading Process
 
-1. Click **"Load"** button or `File → Open` (Ctrl+O)
+1. Click **"Load"** button 
 2. Navigate to your data file
 3. Select the file and click "Open"
 4. Data is automatically parsed and loaded
@@ -170,10 +173,11 @@ root -l AdvancedPlotGUI.C
 - Multiple color palettes available
 - Best for: Heat maps, 2D distributions
 
-#### Box Plot
-- Statistical summary of data distribution
-- Shows median, quartiles, and outliers
-- Best for: Comparing multiple datasets
+#### 3D Histogram
+- Displays density of (x, y) pairs
+- Color-coded intensity
+- Multiple color palettes available
+- Best for: Heat maps, 3D distributions, Profile 2D, 3D
 
 ### 3. Fitting Capabilities
 
@@ -203,100 +207,11 @@ root -l AdvancedPlotGUI.C
 - Example: `[0]*sin([1]*x+[2])+[3]`
 
 #### Fit Options
-
-- **Fit Range**: Specify X-axis range for fitting
-- **Fit Options**: 
-  - `Q`: Quiet mode (minimal output)
-  - `R`: Use the range specified in the function
-  - `N`: No plotting
-  - `E`: Better error estimation
-  - `M`: Improve fit results
+- Can be accessed via ROOT FitPanel options
 
 ### 4. Plot Customization
+- Full control using ROOT FitPanel or via terminal window
 
-#### Color Settings
-
-Access via `Plot → Customize → Colors`
-
-- **Line Color**: 1-50 (ROOT color palette)
-- **Fill Color**: For histograms and areas
-- **Marker Color**: For scatter plots
-- **Popular colors**: 
-  - Black (1), Red (2), Green (3), Blue (4)
-  - Yellow (5), Magenta (6), Cyan (7)
-
-#### Marker Styles
-
-Access via `Plot → Customize → Markers`
-
-- Styles 1-34 available
-- Common styles:
-  - 20: Filled circle (default)
-  - 21: Filled square
-  - 22: Filled triangle up
-  - 23: Filled triangle down
-  - 24: Open circle
-  - 25: Open square
-
-#### Line Styles
-
-- Solid (1), Dashed (2), Dotted (3), Dash-dot (4)
-- Line width: 1-10 pixels
-
-#### Axis Configuration
-
-- **Title**: Set X and Y axis labels
-- **Range**: Manual or automatic scaling
-- **Log Scale**: Toggle logarithmic axes
-- **Grid**: Show/hide grid lines
-
-### 5. Canvas Interaction
-
-#### Mouse Controls
-
-- **Left Click + Drag**: Pan the plot
-- **Right Click**: Context menu
-- **Mouse Wheel**: Zoom in/out
-- **Double Click**: Zoom to default view
-
-#### Zoom and Pan
-
-- Click and drag to create a zoom box
-- Right-click → `UnZoom` to reset
-- Use toolbar zoom tools for precise control
-
-### 6. Export Options
-
-#### Supported Formats
-
-**Raster Formats**
-- PNG (Portable Network Graphics) - Best for web
-- JPG (JPEG) - Smaller file size, some quality loss
-- GIF (Graphics Interchange Format)
-
-**Vector Formats**
-- PDF (Portable Document Format) - Best for papers
-- EPS (Encapsulated PostScript) - For LaTeX
-- SVG (Scalable Vector Graphics) - For presentations
-
-**ROOT Format**
-- .root file with canvas object
-- Preserves all interactive features
-- Can be reopened and edited later
-
-**Source Code**
-- .C (ROOT macro) - Executable C++ code
-- Recreates the plot when run
-
-#### Export Process
-
-1. Click **"Export"** or `File → Export`
-2. Choose format from dropdown
-3. Enter filename
-4. Click "Save"
-5. Confirmation message appears
-
----
 
 ## Example Workflows
 
@@ -382,44 +297,7 @@ Access via `Plot → Customize → Markers`
    - Examine residuals plot if needed
    ```
 
-### Workflow 3: Time Series Visualization
-
-**Scenario**: Plotting time-dependent measurements.
-
-**Steps**:
-
-1. **Load Time Series Data**
-   ```
-   - Prepare CSV with timestamp, value columns
-   - Load via "Load" button
-   ```
-
-2. **Create Line Plot**
-   ```
-   - Select "Line Plot" from dropdown
-   - Click "Plot"
-   ```
-
-3. **Customize Time Axis**
-   ```
-   - Right-click X-axis → "SetTimeDisplay"
-   - Choose time format (e.g., "%H:%M:%S")
-   ```
-
-4. **Add Trend Line**
-   ```
-   - Fit with "pol1" for linear trend
-   - Or "pol2" for curved trend
-   ```
-
-5. **Annotate**
-   ```
-   - Right-click on canvas
-   - Insert → Text to add labels
-   - Mark important events or thresholds
-   ```
-
-### Workflow 4: Multiple Dataset Comparison
+### Workflow 3: Multiple Dataset Comparison
 
 **Scenario**: Comparing experimental data with simulation.
 
@@ -452,49 +330,6 @@ Access via `Plot → Customize → Markers`
    - Compares distributions
    - Shows agreement level
    ```
-
----
-
-## Keyboard Shortcuts
-
-### File Operations
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+O` | Open file |
-| `Ctrl+S` | Save canvas to ROOT file |
-| `Ctrl+E` | Export plot |
-| `Ctrl+Q` | Quit application |
-
-### Plot Operations
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+P` | Create/refresh plot |
-| `Ctrl+F` | Perform fit |
-| `Ctrl+Z` | Undo last action |
-| `Ctrl+R` | Reset view |
-
-### Canvas Navigation
-| Shortcut | Action |
-|----------|--------|
-| `Arrow Keys` | Pan canvas |
-| `+` / `-` | Zoom in/out |
-| `Home` | Reset to default view |
-| `Space` | Toggle full screen |
-
-### Customization
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+L` | Toggle log scale Y-axis |
-| `Ctrl+Shift+L` | Toggle log scale X-axis |
-| `Ctrl+G` | Toggle grid |
-| `Ctrl+T` | Toggle statistics box |
-
-### Help
-| Shortcut | Action |
-|----------|--------|
-| `F1` | Open help documentation |
-| `Ctrl+A` | About dialog |
-
 ---
 
 ## Troubleshooting
@@ -588,64 +423,6 @@ If you encounter issues not listed here:
 3. **GitHub Issues**: Report bugs at the repository issue tracker
 4. **ROOT Forum**: Ask questions at [https://root-forum.cern.ch/](https://root-forum.cern.ch/)
 5. **Contact**: Email the developer with detailed error description
-
----
-
-## FAQ
-
-### General Questions
-
-**Q: What is ROOT?**  
-A: ROOT is a modular scientific software framework developed at CERN. It provides tools for data analysis, visualization, and storage, widely used in particle physics and other scientific fields.
-
-**Q: Do I need programming knowledge to use this tool?**  
-A: No, the GUI is designed for users without programming experience. However, knowledge of ROOT and C++ can help with advanced customization.
-
-**Q: Can I use this for non-scientific data?**  
-A: Absolutely! While designed for scientific analysis, the tool works well for any numerical data visualization needs.
-
-### Data-Related Questions
-
-**Q: What's the maximum file size I can load?**  
-A: This depends on your system's available memory. Files up to several GB can typically be handled, but performance may degrade with very large datasets.
-
-**Q: Can I load multiple files at once?**  
-A: Currently, files are loaded one at a time. However, you can overlay plots from different files using the "Add Dataset" feature.
-
-**Q: Does it support 3D plotting?**  
-A: The current version focuses on 1D and 2D plots. 3D plotting support is planned for future releases.
-
-### Technical Questions
-
-**Q: Which ROOT version is required?**  
-A: ROOT 6.0 or later. Recommended: ROOT 6.24 or newer for best compatibility and features.
-
-**Q: Can I run this on Windows?**  
-A: Yes, if you have ROOT installed on Windows. Alternatively, use WSL (Windows Subsystem for Linux) with ROOT.
-
-**Q: How do I report bugs?**  
-A: Please report bugs on the GitHub repository issues page with:
-- Operating system and ROOT version
-- Steps to reproduce the issue
-- Error messages or screenshots
-- Sample data file (if applicable)
-
-**Q: Is the source code open?**  
-A: Yes! The project is open-source and available on GitHub. Contributions are welcome.
-
----
-
-## Additional Resources
-
-### Links
-- **Project Repository**: [https://github.com/siddharthparashri5/Advance_ROOT_Plotting](https://github.com/siddharthparashri5/Advance_ROOT_Plotting)
-- **ROOT Official Site**: [https://root.cern.ch](https://root.cern.ch)
-- **ROOT Tutorials**: [https://root.cern.ch/doc/master/group__Tutorials.html](https://root.cern.ch/doc/master/group__Tutorials.html)
-
-### Related Documentation
-- Developer Guide (for extending functionality)
-- API Reference (Doxygen-generated)
-- Example datasets and scripts
 
 ---
 
