@@ -11,10 +11,6 @@
 1. [Introduction](#introduction)
 2. [Quick Start Guide](#quick-start-guide)
 3. [Installation](#installation)
-4. [Feature Descriptions](#feature-descriptions)
-5. [Example Workflows](#example-workflows)
-6. [Troubleshooting](#troubleshooting)
-7. [FAQ](#faq)
 
 ---
 
