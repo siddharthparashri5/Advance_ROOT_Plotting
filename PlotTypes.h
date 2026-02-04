@@ -5,6 +5,7 @@
 #include <TGraphErrors.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <TH3D.h>
 #include <TCanvas.h>
 #include <TLegend.h>
 #include <TPaveText.h>
@@ -22,23 +23,29 @@ struct PlotConfig {
         kTGraphErrors,
         kTH1D,
         kTH2D,
+        kTH3D
     };
     
     PlotType type;
     int xColumn;
     int yColumn;
+    int zColumn;
     int xErrColumn;  // -1 if not used
     int yErrColumn;  // -1 if not used
+    int zErrColumn;  // -1 if not used
+    int weightColumn;
     std::string title;
     std::string xTitle;
     std::string yTitle;
+    std::string zTitle;
     int bins;
     int color;
     int markerStyle;
     
     
-    PlotConfig() : type(kTGraph), xColumn(-1), yColumn(-1), 
-                   xErrColumn(-1), yErrColumn(-1), bins(100), 
+    
+    PlotConfig() : type(kTGraph), xColumn(-1), yColumn(-1), zColumn(-1), 
+                   xErrColumn(-1), yErrColumn(-1), zErrColumn(-1), weightColumn(-1), bins(100), 
                    color(kBlue), markerStyle(20) {}
 };
 
@@ -227,6 +234,79 @@ public:
         
         return hist;
     }
+    
+    // Create TH3D from column data, with optional weights
+	static TH3D* CreateTH3D(const ColumnData& data, const PlotConfig& config,
+                        int nBinsX = 50, int nBinsY = 50, int nBinsZ = 50,
+                        double xMin = 0, double xMax = 0,
+                        double yMin = 0, double yMax = 0,
+                        double zMin = 0, double zMax = 0) {
+	    // Check column indices
+    	if (config.xColumn < 0 || config.yColumn < 0 || config.zColumn < 0 ||
+    	    config.xColumn >= data.GetNumColumns() ||
+    	    config.yColumn >= data.GetNumColumns() ||
+    	    config.zColumn >= data.GetNumColumns() ||
+    	    (config.weightColumn >= data.GetNumColumns() && config.weightColumn != -1)) 
+    	{
+    	    std::cerr << "Invalid column indices for TH3D" << std::endl;
+    	    return nullptr;
+    	}
+
+    	const auto& xData = data.data[config.xColumn];
+	    const auto& yData = data.data[config.yColumn];
+    	const auto& zData = data.data[config.zColumn];
+    	const auto* wData = (config.weightColumn >= 0) ? &data.data[config.weightColumn] : nullptr;
+	
+    	int nPoints = std::min({xData.size(), yData.size(), zData.size()});
+    	if (wData) nPoints = std::min(nPoints, (int)wData->size());
+	
+    	if (nPoints == 0) return nullptr;
+	
+    	// Auto-calculate ranges if not provided
+    	if (xMin == 0 && xMax == 0) {
+    	    xMin = *std::min_element(xData.begin(), xData.end());
+    	    xMax = *std::max_element(xData.begin(), xData.end());
+    	    double range = xMax - xMin;
+    	    xMin -= 0.1 * range;
+    	    xMax += 0.1 * range;
+    	}
+	
+    	if (yMin == 0 && yMax == 0) {
+    	    yMin = *std::min_element(yData.begin(), yData.end());
+    	    yMax = *std::max_element(yData.begin(), yData.end());
+    	    double range = yMax - yMin;
+    	    yMin -= 0.1 * range;
+    	    yMax += 0.1 * range;
+    	}
+	
+    	if (zMin == 0 && zMax == 0) {
+    	    zMin = *std::min_element(zData.begin(), zData.end());
+    	    zMax = *std::max_element(zData.begin(), zData.end());
+    	    double range = zMax - zMin;
+    	    zMin -= 0.1 * range;
+    	    zMax += 0.1 * range;
+    	}
+	
+    	// Use column headers for axis titles
+    	std::string xTitle = data.headers[config.xColumn].empty() ? config.xTitle : data.headers[config.xColumn];
+    	std::string yTitle = data.headers[config.yColumn].empty() ? config.yTitle : data.headers[config.yColumn];
+    	std::string zTitle = data.headers[config.zColumn].empty() ? config.zTitle : data.headers[config.zColumn];
+	
+    	TH3D* hist = new TH3D(Form("h3_%p", (void*)&config),
+    	                      Form("%s;%s;%s;%s", config.title.c_str(), xTitle.c_str(), yTitle.c_str(), zTitle.c_str()),
+    	                      nBinsX, xMin, xMax, nBinsY, yMin, yMax, nBinsZ, zMin, zMax);
+	
+    	for (int i = 0; i < nPoints; ++i) {
+    	    if (wData) {
+    	        hist->Fill(xData[i], yData[i], zData[i], (*wData)[i]);
+    	    } else {
+    	        hist->Fill(xData[i], yData[i], zData[i]);
+    	    }
+    	}
+
+    	return hist;
+	}
+
 };
 
 #endif // PLOTTYPES_H

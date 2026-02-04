@@ -324,6 +324,12 @@ void AdvancedPlotGUI::DoAddPlot()
                         currentData.headers[config.xColumn].c_str(),
                         currentData.headers[config.yColumn].c_str());
             break;
+        case PlotConfig::kTH3D:
+            desc = Form("TH3D: %s vs %s",
+                        currentData.headers[config.xColumn].c_str(),
+                        currentData.headers[config.yColumn].c_str(),
+                        currentData.headers[config.zColumn].c_str());
+            break;
     }
 
     plotListBox->AddEntry(desc.c_str(), plotConfigs.size() - 1);
@@ -539,7 +545,11 @@ void AdvancedPlotGUI::DoPlot() {
             } else if (config.type == PlotConfig::kTH2D) {
                 TH2D* h = PlotCreator::CreateTH2D(currentData, config);
                 if (h) { h->Draw("COLZ"); ApplyFit(h, fitType, config.color, customFunc); }
+            } else if (config.type == PlotConfig::kTH3D) {
+                TH3D* h = PlotCreator::CreateTH3D(currentData, config);
+                if (h) { h->Draw("COLZ"); }
             }
+
         }
         canvas->Update();
     }
@@ -568,6 +578,9 @@ void AdvancedPlotGUI::DoPlot() {
             } else if (config.type == PlotConfig::kTH2D) {
                 TH2D* h = PlotCreator::CreateTH2D(currentData, config);
                 if (h) { h->Draw("COLZ"); ApplyFit(h, fitType, config.color, customFunc); }
+            } else if (config.type == PlotConfig::kTH3D) {
+                TH3D* h = PlotCreator::CreateTH3D(currentData, config);
+                if (h) { h->Draw("COLZ"); }
             }
             c->Update();
         }

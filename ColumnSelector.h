@@ -23,6 +23,7 @@ private:
 
     TGComboBox* xColumnCombo;
     TGComboBox* yColumnCombo;
+    TGComboBox* zColumnCombo;
     TGComboBox* xErrCombo;
     TGComboBox* yErrCombo;
 
@@ -31,6 +32,7 @@ private:
     TGCheckButton* radioTGraphErrors;
     TGCheckButton* radioTH1D;
     TGCheckButton* radioTH2D;
+    TGCheckButton* radioTH3D;
 
     TGTextButton* okButton;
     TGTextButton* cancelButton;

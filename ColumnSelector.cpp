@@ -33,6 +33,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
 	radioTGraphErrors = new TGCheckButton(typeGroup, "TGraphErrors (x vs y with errors)", 2);
 	radioTH1D = new TGCheckButton(typeGroup, "TH1D (histogram of x)", 3);
 	radioTH2D = new TGCheckButton(typeGroup, "TH2D (2D histogram x vs y)", 4);
+    radioTH3D = new TGCheckButton(typeGroup, "TH3D (3D histogram x vs y vs z)", 5);
 
     // Add to type group layout
     typeGroup->AddFrame(radioNone, new TGLayoutHints(kLHintsLeft,5,5,2,2));
@@ -40,6 +41,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
 	typeGroup->AddFrame(radioTGraphErrors, new TGLayoutHints(kLHintsLeft,5,5,2,2));
 	typeGroup->AddFrame(radioTH1D, new TGLayoutHints(kLHintsLeft,5,5,2,2));
 	typeGroup->AddFrame(radioTH2D, new TGLayoutHints(kLHintsLeft,5,5,2,2));
+    typeGroup->AddFrame(radioTH3D, new TGLayoutHints(kLHintsLeft,5,5,2,2));
 
 	// Default selection
 	radioNone->SetOn();
@@ -49,6 +51,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
 	radioTGraphErrors->Connect("Clicked()", "ColumnSelectorDialog", this, "UpdateColumnVisibility()");
 	radioTH1D->Connect("Clicked()", "ColumnSelectorDialog", this, "UpdateColumnVisibility()");
 	radioTH2D->Connect("Clicked()", "ColumnSelectorDialog", this, "UpdateColumnVisibility()");
+    radioTH3D->Connect("Clicked()", "ColumnSelectorDialog", this, "UpdateColumnVisibility()");
 	radioNone->Connect("Clicked()", "ColumnSelectorDialog", this, "UpdateColumnVisibility()");
 
 
@@ -83,6 +86,18 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
     yColumnCombo->Resize(200,20);
     yFrame->AddFrame(yColumnCombo, new TGLayoutHints(kLHintsLeft,5,5,2,2));
     colFrame->AddFrame(yFrame, new TGLayoutHints(kLHintsExpandX,5,5,2,2));
+
+    // Z column
+    TGHorizontalFrame* zFrame = new TGHorizontalFrame(colFrame);
+    TGLabel* zLabel = new TGLabel(zFrame, "Z Column:");
+    zLabel->SetWidth(100);
+    zFrame->AddFrame(zLabel, new TGLayoutHints(kLHintsLeft|kLHintsCenterY,5,5,2,2));
+    zColumnCombo = new TGComboBox(zFrame);
+    for(int i=0; i<data->GetNumColumns(); ++i) zColumnCombo->AddEntry(data->headers[i].c_str(), i);
+    zColumnCombo->Select(1);
+    zColumnCombo->Resize(200,20);
+    zFrame->AddFrame(zColumnCombo, new TGLayoutHints(kLHintsLeft,5,5,2,2));
+    colFrame->AddFrame(zFrame, new TGLayoutHints(kLHintsExpandX,5,5,2,2));
 
     // X error column
     TGHorizontalFrame* xErrFrame = new TGHorizontalFrame(colFrame);
@@ -148,6 +163,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
 void ColumnSelectorDialog::DoOK() {
     config->xColumn = xColumnCombo->GetSelected();
     config->yColumn = yColumnCombo->GetSelected();
+    config->zColumn = zColumnCombo->GetSelected();
     config->xErrColumn = xErrCombo->GetSelected();
     config->yErrColumn = yErrCombo->GetSelected();
 
@@ -155,11 +171,14 @@ void ColumnSelectorDialog::DoOK() {
     else if (radioTGraphErrors->IsOn()) config->type = PlotConfig::kTGraphErrors;
     else if (radioTH1D->IsOn()) config->type = PlotConfig::kTH1D;
     else if (radioTH2D->IsOn()) config->type = PlotConfig::kTH2D;
+    else if (radioTH3D->IsOn()) config->type = PlotConfig::kTH3D;
 
     if (config->xColumn >= 0 && config->xColumn < (int)data->headers.size())
         config->xTitle = data->headers[config->xColumn];
     if (config->yColumn >= 0 && config->yColumn < (int)data->headers.size())
         config->yTitle = data->headers[config->yColumn];
+    if (config->zColumn >= 0 && config->zColumn < (int)data->headers.size())
+        config->zTitle = data->headers[config->zColumn];
 
     *dialogResult = true;
     DeleteWindow();
@@ -180,9 +199,11 @@ void ColumnSelectorDialog::UpdateColumnVisibility() {
     }
 
     xColumnCombo->SetEnabled(radioTGraph->IsOn() || radioTGraphErrors->IsOn() ||
-                             radioTH1D->IsOn() || radioTH2D->IsOn());
+                             radioTH1D->IsOn() || radioTH2D->IsOn() || radioTH3D->IsOn());
 
-    yColumnCombo->SetEnabled(radioTGraph->IsOn() || radioTGraphErrors->IsOn() || radioTH2D->IsOn());
+    yColumnCombo->SetEnabled(radioTGraph->IsOn() || radioTGraphErrors->IsOn() || radioTH2D->IsOn() || radioTH3D->IsOn());
+
+    zColumnCombo->SetEnabled(radioTH3D->IsOn());
 
     if (radioNone->IsOn()) {
         xColumnCombo->SetEnabled(false);
@@ -194,8 +215,9 @@ void ColumnSelectorDialog::UpdateColumnVisibility() {
         radioTGraphErrors->SetOn(false);
         radioTH1D->SetOn(false);
         radioTH2D->SetOn(false);
+        radioTH3D->SetOn(false);
     } else {
-        if (radioTGraph->IsOn() || radioTGraphErrors->IsOn() || radioTH1D->IsOn() || radioTH2D->IsOn())
+        if (radioTGraph->IsOn() || radioTGraphErrors->IsOn() || radioTH1D->IsOn() || radioTH2D->IsOn() || radioTH3D->IsOn())
             radioNone->SetOn(false);
     }
 }
