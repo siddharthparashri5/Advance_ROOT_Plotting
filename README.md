@@ -589,9 +589,11 @@ Contributions are welcome! Please:
 ### Common Issues
 
 #### 1. Dictionary Generation Fails
-**Error**: `Missing FileEntry for ColumnSelector.h`
+**Error**: `Missing or /include/ColumnSelector.h file not found`
 
 **Solution**:
+in src/ColumnSelectorDict.cpp change #include "/include/ColumnSelector.h" to #include "../include/ColumnSelector.h"
+
 ```bash
 # Clean and rebuild
 make clean
