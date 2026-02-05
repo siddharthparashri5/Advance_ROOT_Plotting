@@ -63,30 +63,39 @@ make
    ```bash
    ./AdvancedPlotGUI.C
    ```
-
-3. **Load Your Data**
-   - Click the **"Load"** button or use `File → Open`
+3. **Data Preparation**
+   - When preparing data files (.txt, .dat, .csv) for plotting, put data in columns
+   - Each column header is treated as an axis title
+   - Legends are made from the chosen Y-axis header name   
+   
+4. **Load Your Data**
+   - Click the **"Browse"** button
    - Select your data file (supported: .root, .csv, .txt, .dat)
    - The file path will appear in the text entry box
-   - The ROOT files will be opened in a TBrowser. 
+   - Click the **"Load"** button, and a dialog box will appear to show the loaded data
+   - The ROOT files will be opened in a TBrowser 
 
-4. **Create a Plot**
+5. **Create a Plot**
    - Select your desired plot type from the dropdown menu
-   - Click the **"Plot"** button
-   - Your data will appear on the canvas
+   - Click the **"Add Plot"** button
+   - Select the **"Plot Type"** followed by **"Column Selection"**, Press **"OK"**
    - You can add multiple plots at a time
+   - Select the title for the TCanvas 
    - Plot multiple plots in the same canvas using the built-in Draw("SAME") function
    - Or Divide TCanvas using Divide(mxn) and plot multiple plots in a grid format.
+   - Your data will appear on the canvas
 
-5. **Fit Your Data** (Optional)
+6. **Fit Your Data** (Optional)
    - Select a fit function from the fit dropdown menu
-   - Click the **"Fit"** button
+   - The user can also provide a custom fit function
+   - Click the **"Create Plots"** button
+   - TCanvas will appear with the applied Fit function
    - Fit results will be displayed on the plot
 
-6. **Make Plot Look Pretty**
+7. **Make Plot Look Pretty**
    - Use the built-in ROOT functionality to Edit Canvases.
 
-7. **Export Your Plot**
+8. **Export Your Plot**
    - Click the **"Save as"** button from the TCanvas 
    - Choose your desired format and location
    - Click "Save"
