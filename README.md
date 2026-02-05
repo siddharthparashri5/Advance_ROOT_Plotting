@@ -11,6 +11,10 @@
 1. [Introduction](#introduction)
 2. [Quick Start Guide](#quick-start-guide)
 3. [Installation](#installation)
+4. [Data Preparation](#data-preparation)
+5. [Workflow](#workflow)
+6. [Extending The Code](#extending-the-code)
+7. [License](#license)
 
 ---
 
@@ -58,7 +62,7 @@ Advance_ROOT_Plotting/
    ├── LICENSE
 ```
 
-1. **Installation**
+## Installation
 
 ### Building from Source
 
@@ -77,16 +81,12 @@ make
 ./AdvancedPlotGUI
 ```
 
-2. **Launch the Application (after #installation)**
-   ```
-   bash
-   ./AdvancedPlotGUI.C
-   ```
-3. **Data Preparation**
-   - When preparing data files (.txt, .dat, .csv) for plotting, put data in columns
-   - Each column header is treated as an axis title
-   - Legends are made from the chosen Y-axis header name
-   -  Text/DAT files: 
+## Data Preparation
+
+- When preparing data files (.txt, .dat, .csv) for plotting, put data in columns
+- Each column header is treated as an axis title
+- Legends are made from the chosen Y-axis header name
+-  Text/DAT files: 
      ```
      # Optional comment line
      # Optional comment line
@@ -95,7 +95,7 @@ make
      1.0 2.3 3.4 5.2 0.003 0.1
      ...
      ```
-     -  CSV files: 
+-  CSV files: 
      ```
      # Optional comment line
      # Optional comment line
@@ -104,18 +104,25 @@ make
      1.0,2.3,0.1,0.3
      ...
      ```
-     - Root files:
+ - Root files:
        - Opens in a TBrowser for easier functionality
        - The terminal can be used as usual
-           
-4. **Load Your Data**
+
+## Workflow
+
+1. **Launch the Application (after #installation)**
+   ```bash
+   ./AdvancedPlotGUI.C
+   ```
+
+2. **Load Your Data**
    - Click the **"Browse"** button
    - Select your data file (supported: .root, .csv, .txt, .dat)
    - The file path will appear in the text entry box
    - Click the **"Load"** button, and a dialog box will appear to show the loaded data
    - The ROOT files will be opened in a TBrowser 
 
-5. **Create a Plot**
+3. **Create a Plot**
    - Select your desired plot type from the dropdown menu
    - Click the **"Add Plot"** button
    - Select the **"Plot Type"** followed by **"Column Selection"**, Press **"OK"**
@@ -125,22 +132,22 @@ make
    - Or Divide TCanvas using Divide(mxn) and plot multiple plots in a grid format.
    - Your data will appear on the canvas
 
-6. **Fit Your Data** (Optional)
+4. **Fit Your Data** (Optional)
    - Select a fit function from the fit dropdown menu
    - The user can also provide a custom fit function
    - Click the **"Create Plots"** button
    - TCanvas will appear with the applied Fit function
    - Fit results will be displayed on the plot
 
-7. **Make Plot Look Pretty**
+5. **Make Plot Look Pretty**
    - Use the built-in ROOT functionality to Edit Canvases.
 
-8. **Export Your Plot**
+6. **Export Your Plot**
    - Click the **"Save as"** button from the TCanvas 
    - Choose your desired format and location
    - Click "Save"
 
-## Extending the Code
+## Extending The Code
    - Adding new file formats:
      - Edit DataReader.h and add a new Read*File() method.
      - Edit DataReader.h and add a new Read*File() method.
@@ -151,5 +158,5 @@ make
     - Edit FitUtils.h, add to the FitType enum and GetFitFunctions() map.
     - Edit FitUtils.h, add to the FitType enum and GetFitFunctions() map.
       
-# License 
+## License 
 Free to use and modify. GNU General Public License v3.
