@@ -40,6 +40,24 @@ Advanced ROOT Plotting is a graphical user interface application built on the RO
 - C++ compiler (GCC 7+ or Clang 5+)
 - CMake 3.10 or later (for building)
 
+### Project Structure 
+```
+Advance_ROOT_Plotting/
+   ├── AdvancedPlotGUI.cpp
+   ├── ColumnSelector.cpp
+   ├── AdvancedPlotGUI.h
+   ├── DataReader.h
+   ├── ErrorHandling.h
+   ├── ColumnSelector.h
+   ├── PlotTypes.h
+   ├── FitUtils.h
+   ├── sample_data.csv
+   ├── sample_data.txt
+   ├── Makefile
+   ├── README.md
+   ├── LICENSE
+```
+
 1. **Installation**
 
 ### Building from Source
@@ -60,14 +78,36 @@ make
 ```
 
 2. **Launch the Application (after #installation)**
-   ```bash
+   ```
+   bash
    ./AdvancedPlotGUI.C
    ```
 3. **Data Preparation**
    - When preparing data files (.txt, .dat, .csv) for plotting, put data in columns
    - Each column header is treated as an axis title
-   - Legends are made from the chosen Y-axis header name   
-   
+   - Legends are made from the chosen Y-axis header name
+   -  Text/DAT files: 
+     ```
+     # Optional comment line
+     # Optional comment line
+     x1 y1 x2 y2 x1_err y1_err...  //Header line
+     0.0 1.5 2.3 4.1 0.01 0.2
+     1.0 2.3 3.4 5.2 0.003 0.1
+     ...
+     ```
+     -  CSV files: 
+     ```
+     # Optional comment line
+     # Optional comment line
+     x,y,xerr,yerr...  //Header line
+     0.0,1.5,0.1,0.2
+     1.0,2.3,0.1,0.3
+     ...
+     ```
+     - Root files:
+       - Opens in a TBrowser for easier functionality
+       - The terminal can be used as usual
+           
 4. **Load Your Data**
    - Click the **"Browse"** button
    - Select your data file (supported: .root, .csv, .txt, .dat)
@@ -99,3 +139,17 @@ make
    - Click the **"Save as"** button from the TCanvas 
    - Choose your desired format and location
    - Click "Save"
+
+## Extending the Code
+   - Adding new file formats:
+     - Edit DataReader.h and add a new Read*File() method.
+     - Edit DataReader.h and add a new Read*File() method.
+   - Adding new plot types:
+     - Edit PlotTypes.h and add new creation methods to PlotCreator.
+     - Edit PlotTypes.h and add new creation methods to PlotCreator.
+   - Adding new fit functions:
+    - Edit FitUtils.h, add to the FitType enum and GetFitFunctions() map.
+    - Edit FitUtils.h, add to the FitType enum and GetFitFunctions() map.
+      
+# License 
+Free to use and modify. GNU General Public License v3.
