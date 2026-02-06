@@ -123,17 +123,13 @@ Advance_ROOT_Plotting/
 git clone https://github.com/siddharthparashri5/Advance_ROOT_Plotting.git
 cd Advance_ROOT_Plotting
 
-# Setup directory structure
-make setup
-
-# Move files to appropriate directories (if not already organized)
-# mv *.h include/
-# mv *.cpp src/
-
-# Build
+# Make project
 make
 
-# Run
+# copy ProjectDict_rdict.pcm file to main project folder
+cp src/ProjectDict_rdict.pcm ProjectDict_rdict.pcm
+
+# Run Project
 ./AdvancedPlotGUI
 ```
 
