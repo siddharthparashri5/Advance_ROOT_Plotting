@@ -178,151 +178,144 @@ AdvancedPlotGUI::AdvancedPlotGUI(const TGWindow* p, UInt_t w, UInt_t h)
     TGGroupFrame* scriptGroup = new TGGroupFrame(this, "Script Panel");
     AddFrame(scriptGroup, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5,5,5,5));
 
-    // Language selection and file operations
     TGHorizontalFrame* scriptControlFrame = new TGHorizontalFrame(scriptGroup);
 
     TGLabel* langLabel = new TGLabel(scriptControlFrame, "Language:");
-    scriptControlFrame->AddFrame(langLabel, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 5,5,2,2));
+    scriptControlFrame->AddFrame(langLabel,new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 5,5,2,2));
 
     scriptLangCombo = new TGComboBox(scriptControlFrame);
     scriptLangCombo->AddEntry("ROOT/C++", 0);
     scriptLangCombo->AddEntry("Python", 1);
     scriptLangCombo->Select(0);
     scriptLangCombo->Resize(120, 20);
-    scriptControlFrame->AddFrame(scriptLangCombo, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
+    scriptControlFrame->AddFrame(scriptLangCombo,new TGLayoutHints(kLHintsLeft, 5,5,2,2));
 
     loadScriptButton = new TGTextButton(scriptControlFrame, "Load Script", kLoadScriptButton);
     loadScriptButton->Associate(this);
-    scriptControlFrame->AddFrame(loadScriptButton, new TGLayoutHints(kLHintsLeft, 10,5,2,2));
+    scriptControlFrame->AddFrame(loadScriptButton,new TGLayoutHints(kLHintsLeft, 10,5,2,2));
 
     saveScriptButton = new TGTextButton(scriptControlFrame, "Save Script", kSaveScriptButton);
     saveScriptButton->Associate(this);
-    scriptControlFrame->AddFrame(saveScriptButton, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
+    scriptControlFrame->AddFrame(saveScriptButton,new TGLayoutHints(kLHintsLeft, 5,5,2,2));
 
-    scriptGroup->AddFrame(scriptControlFrame, new TGLayoutHints(kLHintsLeft, 5,5,5,5));
+    scriptGroup->AddFrame(scriptControlFrame,new TGLayoutHints(kLHintsLeft, 5,5,5,5));
 
-    // Create SIDE-BY-SIDE horizontal frame for editor and output
-    TGHorizontalFrame* editorOutputFrame = new TGHorizontalFrame(scriptGroup);
-
-    // --- LEFT SIDE: Script Editor ---
-    TGVerticalFrame* editorFrame = new TGVerticalFrame(editorOutputFrame);
+    TGVerticalFrame* editorFrame = new TGVerticalFrame(scriptGroup);
 
     TGLabel* editorLabel = new TGLabel(editorFrame, "Script Editor:");
-    editorFrame->AddFrame(editorLabel, new TGLayoutHints(kLHintsLeft, 5,5,5,2));
+    editorFrame->AddFrame(editorLabel,new TGLayoutHints(kLHintsLeft, 5,5,5,2));
 
-    scriptEditor = new TGTextEdit(editorFrame, 400, 250);
+    scriptEditor = new TGTextEdit(editorFrame, 400, 300);
 
-    // Terminal styling - black background, green text ((Select One))
-    scriptEditor->SetBackgroundColor(0x000000);  // Black background
-    scriptEditor->SetForegroundColor(0x00FF00);  // Green text
-    // Modern Dark Theme
-    //scriptEditor->SetBackgroundColor(0x1E1E1E);   // Dark gray
-    //scriptEditor->SetForegroundColor(0xD4D4D4);   // Light gray
-    // Ubbuntu Termianl
-    //scriptEditor->SetBackgroundColor(0x2C001E);   // Purple-black
-    //scriptEditor->SetForegroundColor(0xFFFFFF);   // White
+    // Terminal styling
+    scriptEditor->SetBackgroundColor(0x000000);  // Black
+    scriptEditor->SetForegroundColor(0x00FF00);  // Green
+
+    editorFrame->AddFrame(scriptEditor,new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5,5,2,5));
     
-    editorFrame->AddFrame(scriptEditor, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5,5,2,5));
-
     TGHorizontalFrame* editorButtonFrame = new TGHorizontalFrame(editorFrame);
     runScriptButton = new TGTextButton(editorButtonFrame, "Run Script", kRunScriptButton);
     runScriptButton->Associate(this);
-    editorButtonFrame->AddFrame(runScriptButton, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
+    editorButtonFrame->AddFrame(runScriptButton,new TGLayoutHints(kLHintsLeft, 5,5,2,2));
 
     clearEditorButton = new TGTextButton(editorButtonFrame, "Clear Editor", kClearEditorButton);
     clearEditorButton->Associate(this);
-    editorButtonFrame->AddFrame(clearEditorButton, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
-    editorFrame->AddFrame(editorButtonFrame, new TGLayoutHints(kLHintsLeft, 5,5,2,5));
+    editorButtonFrame->AddFrame(clearEditorButton,new TGLayoutHints(kLHintsLeft, 5,5,2,2));
 
-    editorOutputFrame->AddFrame(editorFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandY, 5,5,5,5));
+    editorFrame->AddFrame(editorButtonFrame,new TGLayoutHints(kLHintsLeft, 5,5,2,5));
 
-    // --- RIGHT SIDE: Output View ---
-    TGVerticalFrame* outputFrame = new TGVerticalFrame(editorOutputFrame);
+    scriptGroup->AddFrame(editorFrame,new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5,5,5,5));
 
-    TGLabel* outputLabel = new TGLabel(outputFrame, "Output:");
-    outputFrame->AddFrame(outputLabel, new TGLayoutHints(kLHintsLeft, 5,5,5,2));
-
-    outputView = new TGTextEdit(outputFrame, 400, 250);
-    outputView->SetReadOnly(kTRUE);
-
-    // Terminal styling - black background, light green/white text (Select One)
-    outputView->SetBackgroundColor(0x000000);  // Black background
-    outputView->SetForegroundColor(0xCCFFCC);  // Light green text
-    // Modern Dark Theme
-    //outputView->SetBackgroundColor(0x1E1E1E);
-    //outputView->SetForegroundColor(0xCCCCCC);
-    // Ubuntu Termianl
-    //outputView->SetBackgroundColor(0x2C001E);
-    //outputView->SetForegroundColor(0xFFFFFF);
-
-    outputFrame->AddFrame(outputView, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5,5,2,5));
-
-    clearOutputButton = new TGTextButton(outputFrame, "Clear Output", kClearOutputButton);
-    clearOutputButton->Associate(this);
-    outputFrame->AddFrame(clearOutputButton, new TGLayoutHints(kLHintsLeft, 5,5,2,5));
-
-    editorOutputFrame->AddFrame(outputFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandY, 5,5,5,5));
-
-    scriptGroup->AddFrame(editorOutputFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5,5,5,5));
-
-    // --- BOTTOM: Command Line ---
     TGVerticalFrame* commandFrame = new TGVerticalFrame(scriptGroup);
 
-    TGLabel* cmdLabel = new TGLabel(commandFrame, "Command Line (press Enter to execute):");
-    commandFrame->AddFrame(cmdLabel, new TGLayoutHints(kLHintsLeft, 5,5,5,2));
-
+    TGLabel* cmdLabel = new TGLabel(commandFrame,"Command Line (press Enter to execute):");
+    commandFrame->AddFrame(cmdLabel,new TGLayoutHints(kLHintsLeft, 5,5,5,2));
     commandEntry = new TGTextEntry(commandFrame);
-    commandEntry->Resize(780, 20);
+    commandEntry->Resize(400, 20);
     commandEntry->Associate(this);
-    // Terminal styling for command entry
-    commandEntry->SetBackgroundColor(0x000000);  // Black
-    commandEntry->SetForegroundColor(0x00FF00);  // Green
-    commandFrame->AddFrame(commandEntry, new TGLayoutHints(kLHintsExpandX, 5,5,2,2));
-    
-    runCommandButton = new TGTextButton(commandFrame, "Execute Command", kRunCommandButton);
+
+    // Terminal styling
+    commandEntry->SetBackgroundColor(0x000000);
+    commandEntry->SetForegroundColor(0x00FF00);
+    commandFrame->AddFrame(commandEntry,new TGLayoutHints(kLHintsExpandX, 5,5,2,2));
+    runCommandButton = new TGTextButton(commandFrame,"Execute Command", kRunCommandButton);
     runCommandButton->Associate(this);
-    commandFrame->AddFrame(runCommandButton, new TGLayoutHints(kLHintsLeft, 5,5,2,5));
-    
-    scriptGroup->AddFrame(commandFrame, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+    commandFrame->AddFrame(runCommandButton,new TGLayoutHints(kLHintsLeft, 5,5,2,5));
 
-    // Redirect cout and cerr to output view
-    coutBuf = new TextEditStreamBuf(outputView);
-    cerrBuf = new TextEditStreamBuf(outputView);
-    oldCoutBuf = std::cout.rdbuf(coutBuf);
-    oldCerrBuf = std::cerr.rdbuf(cerrBuf);
-
-    // Print welcome message
-    std::cout << "=== Advanced ROOT Plotting GUI ===" << std::endl;
-    std::cout << "Output window ready. Commands will appear here." << std::endl;
-    std::cout << "===================================" << std::endl << std::endl;
-    std::cout.flush();
-    gSystem->ProcessEvents();
-
+    scriptGroup->AddFrame(commandFrame,new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+  
     /////////////////////////////////////////////////////////////////////////
     
+
     SetWindowName("Advanced Plot GUI");
     MapSubwindows();
     Resize(GetDefaultSize());
     MapWindow();
+    Layout();
+
+    //// Setup stream redirection
+    //coutBuf  = new TextEditStreamBuf(outputView);
+    //cerrBuf  = new TextEditStreamBuf(outputView);
+    //oldCoutBuf = std::cout.rdbuf(coutBuf);
+    //oldCerrBuf = std::cerr.rdbuf(cerrBuf);
+
+    // IMPORTANT: Process events first to ensure widget is ready
+    //gSystem->ProcessEvents();
+    
+    // Small delay to ensure GUI is fully initialized
+    gSystem->Sleep(100);
+    
+    gSystem->ProcessEvents();
 }
 
 // ==========================
 // Destructor
 // ==========================
 AdvancedPlotGUI::~AdvancedPlotGUI() {
-    // Restore original stream buffers
+    /*
+    // Not needed if we're not redirecting streams
     if (oldCoutBuf) std::cout.rdbuf(oldCoutBuf);
     if (oldCerrBuf) std::cerr.rdbuf(oldCerrBuf);
     
-    // Delete custom stream buffers
-    if (coutBuf) delete coutBuf;
-    if (cerrBuf) delete cerrBuf;
+    delete coutBuf;
+    delete cerrBuf;
+    */
     
-    // Close ROOT file if open
     if (currentRootFile && currentRootFile->IsOpen()) {
         currentRootFile->Close();
         delete currentRootFile;
     }
+}
+
+void AdvancedPlotGUI::PrintWelcome() {
+    std::cout << "=== Advanced ROOT Plotting GUI ===" << std::endl;
+    std::cout << "Output window ready. Commands will appear here." << std::endl;
+    std::cout << "===================================" << std::endl;
+    std::cout << std::endl;
+    std::cout.flush();
+    gSystem->ProcessEvents();
+}
+
+void AdvancedPlotGUI::AppendToOutput(const std::string& text) {
+    if (!outputView) return;
+    
+    TGText* txt = outputView->GetText();
+    if (!txt) return;
+    
+    // Get end position
+    TGLongPosition pos(txt->RowCount(), 0);
+    
+    // Insert text
+    txt->InsText(pos, text.c_str());
+    
+    // Update widget
+    outputView->Layout();
+    outputView->Update();
+    
+    // Scroll to bottom
+    outputView->SetVsbPosition(txt->RowCount());
+    
+    gSystem->ProcessEvents();
 }
 
 /////// Browse for file  ////////
@@ -535,10 +528,16 @@ void AdvancedPlotGUI::DoRunScript() {
     
     if (fullScript.IsNull() || fullScript.IsWhitespace()) {
         std::cout << "Script editor is empty." << std::endl;
+        //std::cout.flush();
+        //coutBuf->forceFlush();
+        gSystem->ProcessEvents();
         return;
     }
     
-    std::cout << "=== Executing Script ===" << std::endl;
+    //printf("\n=== Executing Script ===\n");
+    //std::cout.flush();
+    //coutBuf->forceFlush();
+    gSystem->ProcessEvents();
     
     // Split into lines
     std::vector<TString> lines;
@@ -554,6 +553,11 @@ void AdvancedPlotGUI::DoRunScript() {
     
     // Execute each line
     for (const auto& line : lines) {
+        //std::cout << "> " << line.Data() << std::endl;
+        //std::cout.flush();
+        //coutBuf->forceFlush();
+        gSystem->ProcessEvents();
+        
         if (lang == 0) {
             // ROOT/C++
             gROOT->ProcessLine(line);
@@ -562,8 +566,10 @@ void AdvancedPlotGUI::DoRunScript() {
             TPython::Exec(line);
         }
         
-        std::cout.flush();
-        std::cerr.flush();
+        //std::cout.flush();
+        //std::cerr.flush();
+        //coutBuf->forceFlush();
+        //cerrBuf->forceFlush();
         
         // Update canvases
         TIter nextCanvas(gROOT->GetListOfCanvases());
@@ -576,6 +582,10 @@ void AdvancedPlotGUI::DoRunScript() {
     }
     
     std::cout << "=== Script Execution Complete ===" << std::endl;
+    std::cout.flush();
+    //coutBuf->forceFlush();
+
+    gSystem->ProcessEvents();
 }
 
 void AdvancedPlotGUI::DoRunCommand() {
@@ -588,7 +598,10 @@ void AdvancedPlotGUI::DoRunCommand() {
     
     int lang = scriptLangCombo->GetSelected();
     
-    std::cout << "> " << command.Data() << std::endl;
+    std::cout << "\n> " << command.Data() << std::endl;
+    std::cout.flush();
+    coutBuf->forceFlush();
+    gSystem->ProcessEvents();
     
     if (lang == 0) {
         // ROOT/C++
@@ -600,6 +613,8 @@ void AdvancedPlotGUI::DoRunCommand() {
     
     std::cout.flush();
     std::cerr.flush();
+    coutBuf->forceFlush();
+    cerrBuf->forceFlush();
     
     // Update canvases
     TIter nextCanvas(gROOT->GetListOfCanvases());
@@ -608,6 +623,11 @@ void AdvancedPlotGUI::DoRunCommand() {
         c->Modified();
         c->Update();
     }
+    gSystem->ProcessEvents();
+    
+    std::cout << std::endl;
+    std::cout.flush();
+    coutBuf->forceFlush();
     gSystem->ProcessEvents();
     
     // Clear command entry for next command
@@ -683,6 +703,25 @@ void AdvancedPlotGUI::DoClearOutput() {
     }
 }
 
+void AdvancedPlotGUI::DoTestOutput() {
+    std::cout << "\n=== TEST OUTPUT ===" << std::endl;
+    std::cout << "If you can see this, stream redirection is working!" << std::endl;
+    //std::cout << "Current time: " << gSystem->Now() << std::endl;
+    std::cout << "Widget pointer: " << (void*)outputView << std::endl;
+    std::cout << "Text object: " << (void*)outputView->GetText() << std::endl;
+    
+    TGText* txt = outputView->GetText();
+    if (txt) {
+        std::cout << "Text rows: " << txt->RowCount() << std::endl;
+    }
+    
+    std::cout << "===================" << std::endl;
+    std::cout.flush();
+    coutBuf->forceFlush();
+    gSystem->ProcessEvents();
+}
+
+
 //////// Unified Fit Handler /////////
 
 void ApplyFit(
@@ -730,70 +769,67 @@ void ApplyFit(
     }
 }
 
-////////////////////////////////////
+
 /////// Print Canvas/Pad Information ///////
 
 void AdvancedPlotGUI::PrintCanvasInfo(TCanvas* canvas) {
     if (!canvas) return;
     
-    // Force flush any pending output first
-    std::cout.flush();
-    std::cerr.flush();
-    
-    std::cout << "\n=== Canvas/Pad Information ===" << std::endl;
-    std::cout << "Canvas: " << canvas->GetName() << std::endl;
-    std::cout << "  - Title: " << canvas->GetTitle() << std::endl;
-    std::cout << "  - Size: " << canvas->GetWw() << " x " << canvas->GetWh() << " pixels" << std::endl;
-    std::cout << "  - Position: (" << canvas->GetWindowTopX() << ", " << canvas->GetWindowTopY() << ")" << std::endl;
-    std::cout << "  - Number of primitives: " << canvas->GetListOfPrimitives()->GetSize() << std::endl;
+    // Use printf - always goes to terminal, ignores stream redirection
+
+    printf("\n╔═════════════════════════════════════════════╗\n");
+    printf("║          Canvas/Plot Information            ║\n");
+    printf("╚═════════════════════════════════════════════╝\n");
+    printf("Canvas: %s\n", canvas->GetName());
+    printf("  - Title: %s\n", canvas->GetTitle());
+    printf("  - Size: %d x %d pixels\n", canvas->GetWw(), canvas->GetWh());
+    printf("  - Number of primitives: %d\n", canvas->GetListOfPrimitives()->GetSize());
     
     TPad* pad = (TPad*)gPad;
     if (pad) {
-        std::cout << "  - Current pad: " << pad->GetName() << std::endl;
-        std::cout << "\nCurrent Pad Properties:" << std::endl;
-        std::cout << "  - Log X: " << (pad->GetLogx() ? "Yes" : "No") << std::endl;
-        std::cout << "  - Log Y: " << (pad->GetLogy() ? "Yes" : "No") << std::endl;
-        std::cout << "  - Log Z: " << (pad->GetLogz() ? "Yes" : "No") << std::endl;
-        std::cout << "  - Grid X: " << (pad->GetGridx() ? "Yes" : "No") << std::endl;
-        std::cout << "  - Grid Y: " << (pad->GetGridy() ? "Yes" : "No") << std::endl;
-        std::cout << "  - Tick X: " << pad->GetTickx() << std::endl;
-        std::cout << "  - Tick Y: " << pad->GetTicky() << std::endl;
-        std::cout << "  - Margins: L=" << pad->GetLeftMargin() << " R=" << pad->GetRightMargin()
-                  << " T=" << pad->GetTopMargin() << " B=" << pad->GetBottomMargin() << std::endl;
-        std::cout << "  - Fill Color: " << pad->GetFillColor() << std::endl;
-        std::cout << "  - Fill Style: " << pad->GetFillStyle() << std::endl;
+        printf("  - Current pad: %s\n", pad->GetName());
+        printf("\nCurrent Pad Properties:\n");
+        printf("  - Log X: %s\n", pad->GetLogx() ? "Yes" : "No");
+        printf("  - Log Y: %s\n", pad->GetLogy() ? "Yes" : "No");
+        printf("  - Log Z: %s\n", pad->GetLogz() ? "Yes" : "No");
+        printf("  - Grid X: %s\n", pad->GetGridx() ? "Yes" : "No");
+        printf("  - Grid Y: %s\n", pad->GetGridy() ? "Yes" : "No");
+        printf("  - Tick X: %d\n", pad->GetTickx());
+        printf("  - Tick Y: %d\n", pad->GetTicky());
+        printf("  - Margins: L=%.2f R=%.2f T=%.2f B=%.2f\n", 
+               pad->GetLeftMargin(), pad->GetRightMargin(),
+               pad->GetTopMargin(), pad->GetBottomMargin());
+        printf("  - Fill Color: %d\n", pad->GetFillColor());
+        printf("  - Fill Style: %d\n", pad->GetFillStyle());
         
         // List primitives
         TList* prims = pad->GetListOfPrimitives();
         if (prims && prims->GetSize() > 0) {
-            std::cout << "\nObjects in current pad:" << std::endl;
+            printf("\nObjects in current pad:\n");
             TIter next(prims);
             TObject* obj;
             int count = 0;
             while ((obj = next()) && count < 10) {
-                std::cout << "  [" << count++ << "] " << obj->ClassName() 
-                          << " - " << obj->GetName() << std::endl;
+                printf("  [%d] %s - %s\n", count++, obj->ClassName(), obj->GetName());
             }
             if (prims->GetSize() > 10) {
-                std::cout << "  ... and " << (prims->GetSize() - 10) << " more objects" << std::endl;
+                printf("  ... and %d more objects\n", prims->GetSize() - 10);
             }
         }
     }
     
-    std::cout << "\nUseful Commands:" << std::endl;
-    std::cout << "  gPad->SetLogy(1);          // Log Y scale" << std::endl;
-    std::cout << "  gPad->SetGridx(1);         // X grid" << std::endl;
-    std::cout << "  gPad->SetGridy(1);         // Y grid" << std::endl;
-    std::cout << "  gPad->SetFillColor(10);    // Background" << std::endl;
-    std::cout << "  " << canvas->GetName() << "->cd();" << std::endl;
-    std::cout << "  " << canvas->GetName() << "->SaveAs(\"plot.pdf\");" << std::endl;
-    std::cout << "===========================" << std::endl << std::endl;
-    
-    // CRITICAL: Force immediate flush and GUI update
-    std::cout.flush();
-    std::cerr.flush();
-    gSystem->ProcessEvents();
+    printf("\nUseful Commands for ROOT Prompt:\n");
+    printf("  gPad->SetLogy(1);          // Log Y scale\n");
+    printf("  gPad->SetGridx(1);         // X grid\n");
+    printf("  gPad->SetGridy(1);         // Y grid\n");
+    printf("  gPad->SetFillColor(10);    // Background\n");
+    printf("  %s->cd();\n", canvas->GetName());
+    printf("  %s->SaveAs(\"plot.pdf\");\n", canvas->GetName());
+    printf("╚═════════════════════════════════════════════╝\n");
+    fflush(stdout);  // Force immediate output to terminal
 }
+
+
 /////////////////////////////////////////
 
 
@@ -818,6 +854,9 @@ void AdvancedPlotGUI::DoPlot() {
     
     TCanvas* canvas = nullptr;
     TLegend* legend = nullptr;
+    legend = new TLegend(0.65, 0.65, 0.89, 0.89);
+    legend->SetBorderSize(1);
+    legend->SetFillColor(0);
     
     // Helper lambda for RooFit Gaussian
     auto applyRooFitGaussian = [&](TH1* h, int color) {
@@ -858,162 +897,308 @@ void AdvancedPlotGUI::DoPlot() {
     //////  SAME CANVAS MODE /////////
     
     if (sameCanvas) {
-        canvas = new TCanvas("c_same", canvasTitle.c_str(), 900, 700);
-        legend = new TLegend(0.65, 0.65, 0.89, 0.89);
-        legend->SetBorderSize(1);
-        legend->SetFillColor(0);
-        bool firstPlot = true;
+    canvas = new TCanvas("c_same", canvasTitle.c_str(), 900, 700);
+    
+    // Create legend with better positioning
+    legend = new TLegend(0.70, 0.70, 0.95, 0.92);
+    legend->SetBorderSize(1);
+    legend->SetFillColor(0);
+    legend->SetFillStyle(1001);
+    legend->SetTextSize(0.03);
+    legend->SetHeader(canvasTitle.c_str(), "C");
+    
+    bool firstPlot = true;
 
-        for (size_t i = 0; i < plotConfigs.size(); ++i) {
-            PlotConfig& config = plotConfigs[i];
-            config.color = (i % 9) + 1;
+    for (size_t i = 0; i < plotConfigs.size(); ++i) {
+        PlotConfig& config = plotConfigs[i];
+        config.color = (i % 9) + 1;
+        if (config.color == 0) config.color = 1;  // Avoid white
 
-            if (config.type == PlotConfig::kTGraph) {
-                TGraph* g = PlotCreator::CreateTGraph(currentData, config);
-                if (g) {
-                    g->SetTitle(canvasTitle.c_str());
-                    g->Draw(firstPlot ? "APL" : "PL SAME");
-                    gROOT->GetListOfGlobals()->Add(g);
-                    legend->AddEntry(g, currentData.headers[config.yColumn].c_str(), "lp");
-                    ApplyFit(g, fitType, config.color, customFunc);
-                    firstPlot = false;
+        if (config.type == PlotConfig::kTGraph) {
+            TGraph* g = PlotCreator::CreateTGraph(currentData, config);
+            if (g) {
+                g->SetTitle(canvasTitle.c_str());
+                g->Draw(firstPlot ? "APL" : "PL SAME");
+                gROOT->GetListOfGlobals()->Add(g);
+                
+                // Better legend entry
+                std::string legendLabel = Form("%s", currentData.headers[config.yColumn].c_str());
+                legend->AddEntry(g, legendLabel.c_str(), "lp");
+                
+                ApplyFit(g, fitType, config.color, customFunc);
+                firstPlot = false;
+            }
+        } else if (config.type == PlotConfig::kTGraphErrors) {
+            TGraphErrors* g = PlotCreator::CreateTGraphErrors(currentData, config);
+            if (g) {
+                g->SetTitle(canvasTitle.c_str());
+                g->Draw(firstPlot ? "APE" : "PE SAME");
+                gROOT->GetListOfGlobals()->Add(g);
+                
+                std::string legendLabel = Form("%s", currentData.headers[config.yColumn].c_str());
+                legend->AddEntry(g, legendLabel.c_str(), "lpe");
+                
+                ApplyFit(g, fitType, config.color, customFunc);
+                firstPlot = false;
+            }
+        } else if (config.type == PlotConfig::kTH1D || 
+                   config.type == PlotConfig::kTH1F || 
+                   config.type == PlotConfig::kTH1I) {
+            TH1* h = PlotCreator::CreateTH1(currentData, config);
+            if (h) {
+                h->SetTitle(canvasTitle.c_str());
+                h->SetLineColor(config.color);
+                h->SetLineWidth(2);
+                h->Draw(firstPlot ? "HIST" : "HIST SAME");
+                gROOT->GetListOfGlobals()->Add(h);
+                
+                std::string legendLabel = Form("%s", currentData.headers[config.xColumn].c_str());
+                legend->AddEntry(h, legendLabel.c_str(), "l");
+                
+                firstPlot = false;
+
+                if (fitType == FitUtils::kGaus) {
+                    applyRooFitGaussian(h, config.color);
+                } else {
+                    ApplyFit(h, fitType, config.color, customFunc);
                 }
-            } else if (config.type == PlotConfig::kTGraphErrors) {
-                TGraphErrors* g = PlotCreator::CreateTGraphErrors(currentData, config);
-                if (g) {
-                    g->SetTitle(canvasTitle.c_str());
-                    g->Draw(firstPlot ? "APE" : "PE SAME");
-                    gROOT->GetListOfGlobals()->Add(g);
-                    legend->AddEntry(g, currentData.headers[config.yColumn].c_str(), "lpe");
-                    ApplyFit(g, fitType, config.color, customFunc);
-                    firstPlot = false;
-                }
-            } else if (config.type == PlotConfig::kTH1D || 
-                config.type == PlotConfig::kTH1F || 
-                config.type == PlotConfig::kTH1I) {
-                TH1* h = PlotCreator::CreateTH1(currentData, config);
-                if (h) {
-                    h->SetTitle(canvasTitle.c_str());
-                    h->SetLineColor(config.color);
-                    h->Draw(firstPlot ? "HIST" : "HIST SAME");
-                    gROOT->GetListOfGlobals()->Add(h);
-                    legend->AddEntry(h, currentData.headers[config.xColumn].c_str(), "l");
-                    firstPlot = false;
-
-                    if (fitType == FitUtils::kGaus) {applyRooFitGaussian(h, config.color);
-                } else {ApplyFit(h, fitType, config.color, customFunc);}
+            }
+        } else if (config.type == PlotConfig::kTH2D || 
+                   config.type == PlotConfig::kTH2F || 
+                   config.type == PlotConfig::kTH2I) {
+            TH2* h = PlotCreator::CreateTH2(currentData, config);
+            if (h) {
+                h->SetTitle(canvasTitle.c_str());
+                h->Draw(firstPlot ? "COLZ" : "COLZ SAME");
+                gROOT->GetListOfGlobals()->Add(h);
+                
+                std::string legendLabel = Form("%s vs %s", 
+                    currentData.headers[config.xColumn].c_str(),
+                    currentData.headers[config.yColumn].c_str());
+                legend->AddEntry(h, legendLabel.c_str(), "f");
+                
+                firstPlot = false;
+                ApplyFit(h, fitType, config.color, customFunc);
+            }
+        } else if (config.type == PlotConfig::kTH3D || 
+                   config.type == PlotConfig::kTH3F || 
+                   config.type == PlotConfig::kTH3I) {
+            TH3* h = PlotCreator::CreateTH3(currentData, config);
+            if (h) {
+                h->SetTitle(canvasTitle.c_str());
+                h->Draw(firstPlot ? "ISO" : "ISO SAME");
+                gROOT->GetListOfGlobals()->Add(h);
+                
+                std::string legendLabel = Form("%s vs %s vs %s", 
+                    currentData.headers[config.xColumn].c_str(),
+                    currentData.headers[config.yColumn].c_str(),
+                    currentData.headers[config.zColumn].c_str());
+                legend->AddEntry(h, legendLabel.c_str(), "f");
+                
+                firstPlot = false;
             }
         }
     }
-    legend->Draw();
-    canvas->Update();
     
+    // Draw legend if it has entries
+    if (legend->GetNRows() > 1) {  // More than just header
+        legend->Draw();
+    }
+    
+    canvas->Update();
+
     // AUTO-PRINT CANVAS INFO
     PrintCanvasInfo(canvas);
     }
     
     /////// DIVIDED CANVAS MODE  ////////
     else if (dividedCanvas) {
-        canvas = new TCanvas("c_divided", canvasTitle.c_str(), 1200, 900);
-        canvas->Divide(nCols, nRows);
+    canvas = new TCanvas("c_divided", canvasTitle.c_str(), 1200, 900);
+    canvas->Divide(nCols, nRows);
 
-        int padNum = 1;
-        for (size_t i = 0; i < plotConfigs.size(); ++i) {
-            PlotConfig& config = plotConfigs[i];
-            config.color = (i % 9) + 1;
-            if (padNum > nRows * nCols) break;
-            canvas->cd(padNum++);
+    int padNum = 1;
+    for (size_t i = 0; i < plotConfigs.size(); ++i) {
+        PlotConfig& config = plotConfigs[i];
+        config.color = (i % 9) + 1;
+        if (config.color == 0) config.color = 1;
+        
+        if (padNum > nRows * nCols) break;
+        canvas->cd(padNum++);
+        
+        // Create legend for this pad
+        TLegend* padLegend = new TLegend(0.65, 0.75, 0.92, 0.92);
+        padLegend->SetBorderSize(1);
+        padLegend->SetFillColor(0);
+        padLegend->SetTextSize(0.04);
 
-            if (config.type == PlotConfig::kTGraph) {
-                TGraph* g = PlotCreator::CreateTGraph(currentData, config);
-                if (g) {
+        if (config.type == PlotConfig::kTGraph) {
+            TGraph* g = PlotCreator::CreateTGraph(currentData, config);
+            if (g) {
                 g->Draw("APL");
                 gROOT->GetListOfGlobals()->Add(g);
-                ApplyFit(g, fitType, config.color, customFunc);}
-            } else if (config.type == PlotConfig::kTGraphErrors) {
-                TGraphErrors* g = PlotCreator::CreateTGraphErrors(currentData, config);
-                if (g) {
+                
+                std::string legendLabel = Form("%s", currentData.headers[config.yColumn].c_str());
+                padLegend->AddEntry(g, legendLabel.c_str(), "lp");
+                
+                ApplyFit(g, fitType, config.color, customFunc);
+            }
+        } else if (config.type == PlotConfig::kTGraphErrors) {
+            TGraphErrors* g = PlotCreator::CreateTGraphErrors(currentData, config);
+            if (g) {
                 g->Draw("APE");
                 gROOT->GetListOfGlobals()->Add(g);
-                ApplyFit(g, fitType, config.color, customFunc);}
-            } else if (config.type == PlotConfig::kTH1D || 
+                
+                std::string legendLabel = Form("%s", currentData.headers[config.yColumn].c_str());
+                padLegend->AddEntry(g, legendLabel.c_str(), "lpe");
+                
+                ApplyFit(g, fitType, config.color, customFunc);
+            }
+        } else if (config.type == PlotConfig::kTH1D || 
                    config.type == PlotConfig::kTH1F || 
                    config.type == PlotConfig::kTH1I) {
-                TH1* h = PlotCreator::CreateTH1(currentData, config);
-                if (h) {
+            TH1* h = PlotCreator::CreateTH1(currentData, config);
+            if (h) {
                 h->Draw();
                 gROOT->GetListOfGlobals()->Add(h);
-                if (fitType == FitUtils::kGaus) applyRooFitGaussian(h, config.color);
-                else ApplyFit(h, fitType, config.color, customFunc);}
-            } else if (config.type == PlotConfig::kTH2D || 
-                config.type == PlotConfig::kTH2F || 
-                config.type == PlotConfig::kTH2I) {
-                TH2* h = PlotCreator::CreateTH2(currentData, config);
-                if (h) {
+                
+                std::string legendLabel = Form("%s", currentData.headers[config.xColumn].c_str());
+                padLegend->AddEntry(h, legendLabel.c_str(), "l");
+                
+                if (fitType == FitUtils::kGaus) {
+                    applyRooFitGaussian(h, config.color);
+                } else {
+                    ApplyFit(h, fitType, config.color, customFunc);
+                }
+            }
+        } else if (config.type == PlotConfig::kTH2D || 
+                   config.type == PlotConfig::kTH2F || 
+                   config.type == PlotConfig::kTH2I) {
+            TH2* h = PlotCreator::CreateTH2(currentData, config);
+            if (h) {
                 h->Draw("COLZ");
                 gROOT->GetListOfGlobals()->Add(h);
-                ApplyFit(h, fitType, config.color, customFunc);}
+                
+                // TH2 doesn't usually need legend in divided mode
+                // but we can add title
+                std::string legendLabel = Form("%s vs %s", 
+                    currentData.headers[config.xColumn].c_str(),
+                    currentData.headers[config.yColumn].c_str());
+                padLegend->AddEntry(h, legendLabel.c_str(), "f");
+                
+                ApplyFit(h, fitType, config.color, customFunc);
+            }
         } else if (config.type == PlotConfig::kTH3D || 
                    config.type == PlotConfig::kTH3F || 
                    config.type == PlotConfig::kTH3I) {
             TH3* h = PlotCreator::CreateTH3(currentData, config);
-            if (h) {h->Draw("COLZ"); gROOT->GetListOfGlobals()->Add(h);}
+            if (h) {
+                h->Draw("ISO");
+                gROOT->GetListOfGlobals()->Add(h);
+            }
+        }
+        
+        // Draw legend if it has entries
+        if (padLegend->GetNRows() > 0) {
+            padLegend->Draw();
         }
     }
-    canvas->Update();
     
+    canvas->Update();
+
     // AUTO-PRINT CANVAS INFO
     PrintCanvasInfo(canvas);
-}
+    }
 
-    
     ////// SEPARATE CANVAS MODE ////////
     else {
-        for (size_t i = 0; i < plotConfigs.size(); ++i) {
+    for (size_t i = 0; i < plotConfigs.size(); ++i) {
         PlotConfig& config = plotConfigs[i];
         config.color = (i % 9) + 1;
+        if (config.color == 0) config.color = 1;
 
         TCanvas* c = new TCanvas(Form("c%zu", i), Form("%s - %zu", canvasTitle.c_str(), i), 800, 600);
+        
+        // Create legend for this canvas
+        TLegend* canvasLegend = new TLegend(0.70, 0.75, 0.92, 0.92);
+        canvasLegend->SetBorderSize(1);
+        canvasLegend->SetFillColor(0);
+        canvasLegend->SetTextSize(0.03);
 
-            if (config.type == PlotConfig::kTGraph) {
+        if (config.type == PlotConfig::kTGraph) {
             TGraph* g = PlotCreator::CreateTGraph(currentData, config);
-            if (g) {g->Draw("AP");
+            if (g) {
+                g->Draw("APL");
                 gROOT->GetListOfGlobals()->Add(g);
-                ApplyFit(g, fitType, config.color, customFunc);}
-            } else if (config.type == PlotConfig::kTGraphErrors) {
+                
+                std::string legendLabel = Form("%s vs %s", 
+                    currentData.headers[config.xColumn].c_str(),
+                    currentData.headers[config.yColumn].c_str());
+                canvasLegend->AddEntry(g, legendLabel.c_str(), "lp");
+                
+                ApplyFit(g, fitType, config.color, customFunc);
+            }
+        } else if (config.type == PlotConfig::kTGraphErrors) {
             TGraphErrors* g = PlotCreator::CreateTGraphErrors(currentData, config);
-            if (g) {g->Draw("APE");
+            if (g) {
+                g->Draw("APE");
                 gROOT->GetListOfGlobals()->Add(g);
-                ApplyFit(g, fitType, config.color, customFunc);}
-            } else if (config.type == PlotConfig::kTH1D || 
+                
+                std::string legendLabel = Form("%s vs %s", 
+                    currentData.headers[config.xColumn].c_str(),
+                    currentData.headers[config.yColumn].c_str());
+                canvasLegend->AddEntry(g, legendLabel.c_str(), "lpe");
+                
+                ApplyFit(g, fitType, config.color, customFunc);
+            }
+        } else if (config.type == PlotConfig::kTH1D || 
                    config.type == PlotConfig::kTH1F || 
                    config.type == PlotConfig::kTH1I) {
             TH1* h = PlotCreator::CreateTH1(currentData, config);
-            if (h) { h->Draw();
+            if (h) {
+                h->Draw();
                 gROOT->GetListOfGlobals()->Add(h);
-                if (fitType == FitUtils::kGaus) applyRooFitGaussian(h, config.color);
-                else ApplyFit(h, fitType, config.color, customFunc);}
-            } else if (config.type == PlotConfig::kTH2D || 
+                
+                std::string legendLabel = Form("%s", currentData.headers[config.xColumn].c_str());
+                canvasLegend->AddEntry(h, legendLabel.c_str(), "l");
+                
+                if (fitType == FitUtils::kGaus) {
+                    applyRooFitGaussian(h, config.color);
+                } else {
+                    ApplyFit(h, fitType, config.color, customFunc);
+                }
+            }
+        } else if (config.type == PlotConfig::kTH2D || 
                    config.type == PlotConfig::kTH2F || 
                    config.type == PlotConfig::kTH2I) {
             TH2* h = PlotCreator::CreateTH2(currentData, config);
-            if (h) { h->Draw("COLZ");
+            if (h) {
+                h->Draw("COLZ");
                 gROOT->GetListOfGlobals()->Add(h);
-                ApplyFit(h, fitType, config.color, customFunc);}
-            } else if (config.type == PlotConfig::kTH3D || 
+                ApplyFit(h, fitType, config.color, customFunc);
+            }
+        } else if (config.type == PlotConfig::kTH3D || 
                    config.type == PlotConfig::kTH3F || 
                    config.type == PlotConfig::kTH3I) {
             TH3* h = PlotCreator::CreateTH3(currentData, config);
-            if (h) {h->Draw("COLZ"); gROOT->GetListOfGlobals()->Add(h);}
+            if (h) {
+                h->Draw("ISO");
+                gROOT->GetListOfGlobals()->Add(h);
             }
+        }
+        
+        // Draw legend if it has entries
+        if (canvasLegend->GetNRows() > 0) {
+            canvasLegend->Draw();
+        }
+        
         c->Update();
+        
         // AUTO-PRINT CANVAS INFO for each canvas
         PrintCanvasInfo(c);
-        }
+    }
     }
     gSystem->ProcessEvents();
 }
-
 /////// Process messages ///////
 
 Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2) {
@@ -1093,7 +1278,7 @@ int main(int argc, char** argv) {
     // -------- GUI + ROOT Prompt Mode --------
     TRint app("AdvancedPlotApp", &argc, argv);
 
-    new AdvancedPlotGUI(gClient->GetRoot(), 700, 900);
+    new AdvancedPlotGUI(gClient->GetRoot(), 400, 900);
 
     app.Run();   // ROOT prompt + GUI
     return 0;

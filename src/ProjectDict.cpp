@@ -54,7 +54,7 @@ namespace ROOT {
       ::AdvancedPlotGUI *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TInstrumentedIsAProxy< ::AdvancedPlotGUI >(nullptr);
       static ::ROOT::TGenericClassInfo 
-         instance("AdvancedPlotGUI", ::AdvancedPlotGUI::Class_Version(), "../include/AdvancedPlotGUI.h", 143,
+         instance("AdvancedPlotGUI", ::AdvancedPlotGUI::Class_Version(), "../include/AdvancedPlotGUI.h", 157,
                   typeid(::AdvancedPlotGUI), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &::AdvancedPlotGUI::Dictionary, isa_proxy, 4,
                   sizeof(::AdvancedPlotGUI) );

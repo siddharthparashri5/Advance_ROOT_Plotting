@@ -93,43 +93,57 @@ class TextEditStreamBuf;
 
 
 // Custom stream buffer that redirects to TGTextEdit
+// Custom stream buffer that redirects to TGTextEdit
 class TextEditStreamBuf : public std::streambuf {
 private:
     TGTextEdit* textEdit;
     std::string buffer;
-    
+
 public:
     TextEditStreamBuf(TGTextEdit* edit) : textEdit(edit) {}
+
     // Force flush buffer to text edit
-    void forceFlush() {if (!buffer.empty() || textEdit) {sync();}}
-    
+    void forceFlush() {
+        sync();
+    }
+
 protected:
     virtual int overflow(int c) override {
         if (c != EOF) {
             if (c == '\n') {
-                // Flush line to text edit
-                if (textEdit) {
-                    TGText* txt = textEdit->GetText();
-                    if (!buffer.empty()) {
-                        txt->InsText(TGLongPosition(txt->RowCount(), 0), buffer.c_str());
-                        buffer.clear();}
-                    txt->InsText(TGLongPosition(txt->RowCount(), 0), "\n");
-                    textEdit->Layout(); textEdit->SetVsbPosition(txt->RowCount());
-                    textEdit->Update(); gSystem->ProcessEvents();
-                }
-            } else { buffer += static_cast<char>(c);}
-        }return c;
+                // Add newline to buffer and flush
+                buffer += '\n';
+                sync();
+            } else {
+                buffer += static_cast<char>(c);
+            }
+        }
+        return c;
     }
+
     virtual int sync() override {
-        if (!buffer.empty() && textEdit) {
+        if (textEdit && textEdit->GetText()) {
             TGText* txt = textEdit->GetText();
-            txt->InsText(TGLongPosition(txt->RowCount(), 0), buffer.c_str());
-            txt->InsText(TGLongPosition(txt->RowCount(), 0), "\n");
-            buffer.clear();
-            textEdit->Layout();
-            textEdit->SetVsbPosition(txt->RowCount());
-            textEdit->Update();
-            gSystem->ProcessEvents();
+            
+            if (!buffer.empty()) {
+                // Get current position (end of text)
+                TGLongPosition pos(txt->RowCount(), 0);
+                
+                // Insert the buffer content
+                txt->InsText(pos, buffer.c_str());
+                buffer.clear();
+                
+                // Force widget update
+                textEdit->Layout();
+                textEdit->Update();
+                
+                // Scroll to bottom
+                TGLongPosition endPos(txt->RowCount(), 0);
+                textEdit->SetVsbPosition(endPos.fY);
+                
+                // Process events to make it appear
+                gSystem->ProcessEvents();
+            }
         }
         return 0;
     }
@@ -144,6 +158,7 @@ class AdvancedPlotGUI : public TGMainFrame {
 private:
 
     void PrintCanvasInfo(TCanvas* canvas);
+    void AppendToOutput(const std::string& text);
 
     // File selection
     TGTextEntry* fileEntry;
@@ -225,12 +240,15 @@ public:
     void DoPlot();
     
     // Script panel methods
+    void PrintWelcome();
+    void DoTestOutput();
     void DoRunScript();
     void DoRunCommand();
     void DoLoadScript();
     void DoSaveScript();
     void DoClearEditor();
     void DoClearOutput();
+    
     
     Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
     ClassDef(AdvancedPlotGUI, 2) // Advanced ROOT plotting GUI with scripting
