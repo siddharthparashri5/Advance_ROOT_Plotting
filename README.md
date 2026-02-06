@@ -237,17 +237,15 @@ The GUI window will appear with several panels:
 #### For Text/CSV Files:
 1. Click **"Browse..."** button
 2. Select your data file (.csv, .txt, .dat)
-3. Click **"Load"**
-4. A dialog shows the number of columns and rows loaded
-5. Click **"Add Plot..."** to configure plots
+3. A dialog shows the number of columns and rows loaded
+4. Click **"Add Plot..."** to configure plots
 
 #### For ROOT Files:
 1. Click **"Browse..."** button
 2. Select your ROOT file (.root)
-3. Click **"Load"**
-4. **TBrowser opens automatically**
-5. Double-click objects in TBrowser to view them
-6. Use the terminal or script panel for advanced operations
+3. **TBrowser opens automatically**
+4. Double-click objects in TBrowser to view them
+5. Use the terminal or script panel for advanced operations
 
 ### 3. Configure Plots
 
