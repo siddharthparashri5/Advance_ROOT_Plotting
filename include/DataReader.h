@@ -26,6 +26,20 @@ struct ColumnData {
     std::vector<std::string> headers;      // Column names/headers
     std::vector<std::vector<double>> data; // Column data
     std::string filename;
+    std::string name;
+    std::vector<double> xVals;
+    std::vector<double> yVals;
+    std::vector<std::string> labels;
+
+    // Constructor
+    ColumnData() = default;
+    
+    // Clear data
+    void Clear() {
+        xVals.clear();
+        yVals.clear();
+        labels.clear();
+    }
     
     int GetNumColumns() const { return headers.size(); }
     int GetNumRows() const { 

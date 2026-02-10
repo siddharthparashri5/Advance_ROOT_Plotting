@@ -1,33 +1,27 @@
 #ifndef COLUMNSELECTOR_H
 #define COLUMNSELECTOR_H
 
-#include <TGClient.h>
-#include <TGButton.h>
-#include <TGButtonGroup.h>
 #include <TGFrame.h>
-#include <TGLabel.h>
+#include <TGButton.h>
 #include <TGComboBox.h>
-#include <TGTextEntry.h>
-#include <TSystem.h>
+#include <TGNumberEntry.h>
+#include <TGLabel.h>
+
 #include "DataReader.h"
 #include "PlotTypes.h"
 
-
-//////////////////////////////
-// Column Selector Dialog
-//////////////////////////////
+// ============================================================================
+// ColumnSelectorDialog
+// All private member names exactly match ColumnSelector.cpp
+// ============================================================================
 class ColumnSelectorDialog : public TGTransientFrame {
 private:
+    // Out-parameters — owned by the caller (ColumnSelector wrapper)
     const ColumnData* data;
-    PlotConfig* config;
+    PlotConfig*       config;
+    bool*             dialogResult;
 
-    TGComboBox* xColumnCombo;
-    TGComboBox* yColumnCombo;
-    TGComboBox* zColumnCombo;
-    TGComboBox* xErrCombo;
-    TGComboBox* yErrCombo;
-
-    TGCheckButton* radioNone;
+    // Plot-type radio buttons
     TGCheckButton* radioTGraph;
     TGCheckButton* radioTGraphErrors;
     TGCheckButton* radioTH1D;
@@ -40,30 +34,59 @@ private:
     TGCheckButton* radioTH3F;
     TGCheckButton* radioTH3I;
 
+    // Column selector combos
+    TGComboBox* xColumnCombo;
+    TGComboBox* yColumnCombo;
+    TGComboBox* zColumnCombo;
+    TGComboBox* xErrCombo;
+    TGComboBox* yErrCombo;
+
+    // Buttons
     TGTextButton* okButton;
     TGTextButton* cancelButton;
 
-    bool* dialogResult;
-
-public:
-    // Constructor
-    ColumnSelectorDialog(const TGWindow* parent,
-                         const ColumnData* columnData,
-                         PlotConfig* plotConfig,
-                         bool* result);
-
-    // Slot to update combo box enable/disable depending on plot type
-    void UpdateColumnVisibility();
-
-    // Other helper functions
+    // Private helpers — names match cpp exactly
+    void PopulateComboBox(TGComboBox* combo, int startIdx);
     void DoOK();
     void DoCancel();
-    void PopulateComboBox(TGComboBox* combo, int startIdx = 0);
+    void UpdateColumnVisibility();
 
-    // Process messages from buttons
-    Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2) override;
+public:
+    // Signature matches ColumnSelector.cpp line 7
+    ColumnSelectorDialog(const TGWindow* parent,
+                         const ColumnData* columnData,
+                         PlotConfig*       plotConfig,
+                         bool*             result);
+    virtual ~ColumnSelectorDialog() {}
 
-    ClassDef(ColumnSelectorDialog, 1) 
+    Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
+
+    // ClassDef 0 avoids -Winconsistent-missing-override with ROOT 6.26
+    ClassDef(ColumnSelectorDialog, 0)
+};
+
+// ============================================================================
+// ColumnSelector — thin RAII wrapper used by PlotManager::AddPlot()
+// ============================================================================
+class ColumnSelector {
+private:
+    PlotConfig fConfig;
+    bool       fAccepted = false;
+
+public:
+    ColumnSelector(const TGWindow* p, const ColumnData& data)
+    {
+        new ColumnSelectorDialog(p, &data, &fConfig, &fAccepted);
+        // Dialog runs modally; fConfig and fAccepted are filled by DoOK()
+    }
+
+    // Returns heap-allocated copy when accepted, nullptr when cancelled.
+    // Caller takes ownership.
+    PlotConfig* GetPlotConfig()
+    {
+        if (!fAccepted) return nullptr;
+        return new PlotConfig(fConfig);
+    }
 };
 
 #endif // COLUMNSELECTOR_H

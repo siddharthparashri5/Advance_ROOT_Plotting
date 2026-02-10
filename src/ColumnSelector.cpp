@@ -173,7 +173,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
     MapSubwindows();
     Resize(GetDefaultSize());
     CenterOnParent();
-
+    Layout();
     // Make sure dropdowns are updated correctly at start
     UpdateColumnVisibility();
 

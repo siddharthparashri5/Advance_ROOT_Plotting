@@ -1,6 +1,6 @@
 // Do NOT change. Changes will be lost next time file is generated
 
-#define R__DICTIONARY_FILENAME dOdOdIsrcdIColumnSelectorDict
+#define R__DICTIONARY_FILENAME ColumnSelectorDict
 #define R__NO_DEPRECATION
 
 /*******************************************************************/
@@ -139,7 +139,7 @@ nullptr
     };
     static const char* includePaths[] = {
 "/opt/root/root-6.26.06-install/include/",
-"/home/siddharth/IFIC_Work/My_Codes/Advance_ROOT_Plotting/include/",
+"/home/siddharth/IFIC_Work/My_Codes/Advance_Plot_Sid/",
 nullptr
     };
     static const char* fwdDeclCode = R"DICTFWDDCLS(
