@@ -10,7 +10,6 @@
 #pragma link C++ class RootDataInspector+;
 #pragma link C++ class CSVPreviewDialog+;
 #pragma link C++ class DropTextEntry+;
-//#pragma link C++ class RootDataInspector+;
 
 // NOTE: FileHandler, PlotManager, ScriptEngine are NOT listed here because
 // they do not inherit from TObject and have no ClassDef. rootcling cannot

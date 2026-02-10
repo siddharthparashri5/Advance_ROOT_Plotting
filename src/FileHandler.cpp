@@ -8,7 +8,6 @@
 #include <TGClient.h>
 #include <TSystem.h>
 
-ClassImp(FileHandler);
 
 // ============================================================================
 // Constructor
@@ -123,19 +122,37 @@ void FileHandler::LoadFromDrop(const char* filepath)
 // ============================================================================
 void FileHandler::LoadRootFile(const char* filepath)
 {
-    // Instead of opening TBrowser, open our custom inspector
-    RootDataInspector* inspector = new RootDataInspector(gClient->GetRoot(), filepath);
-    //inspector->ShowModal();
-    if (!filepath) return;
-
-    new RootDataInspector(gClient->GetRoot(), filepath);
-    
-    // Optionally still keep the file reference
+    // Close previous file
     if (fCurrentRootFile) {
         fCurrentRootFile->Close();
         delete fCurrentRootFile;
+        fCurrentRootFile = nullptr;
     }
-    fCurrentRootFile = TFile::Open(filepath);
+
+    fCurrentRootFile = TFile::Open(filepath, "READ");
+    if (!fCurrentRootFile || fCurrentRootFile->IsZombie()) {
+        new TGMsgBox(gClient->GetRoot(), nullptr,
+            "Error", Form("Cannot open ROOT file:\n%s", filepath),
+            kMBIconStop, kMBOk);
+        fCurrentRootFile = nullptr;
+        return;
+    }
+
+    // Wrap RootDataInspector (a TGGroupFrame) in a transient window
+    TGTransientFrame* win = new TGTransientFrame(
+        gClient->GetRoot(), nullptr, 400, 500);
+    win->SetWindowName(Form("ROOT Inspector — %s",
+        gSystem->BaseName(filepath)));
+    win->SetCleanup(kDeepCleanup);
+
+    RootDataInspector* inspector = new RootDataInspector(win, filepath);
+    inspector->LoadFile(filepath);
+
+    win->AddFrame(inspector, new TGLayoutHints(
+        kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
+    win->MapSubwindows();
+    win->Resize(win->GetDefaultSize());
+    win->MapWindow();
 }
 
 // ============================================================================

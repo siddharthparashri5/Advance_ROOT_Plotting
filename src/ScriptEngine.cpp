@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iostream>
 
-ClassImp(ScriptEngine);
 
 // ============================================================================
 // Constructor

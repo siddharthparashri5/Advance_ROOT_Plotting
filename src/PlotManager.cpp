@@ -26,7 +26,6 @@
 
 #include <iostream>
 
-ClassImp(PlotManager);
 
 // ============================================================================
 // Constructor

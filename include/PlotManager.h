@@ -48,7 +48,7 @@ public:
     const std::vector<PlotConfig>& GetPlotConfigs() const { return fPlotConfigs; }
     size_t GetNumPlots() const { return fPlotConfigs.size(); }
     
-    ClassDef(PlotManager, 0)
+    //ClassDef(PlotManager, 0)
 };
 
 #endif // PLOTMANAGER_H

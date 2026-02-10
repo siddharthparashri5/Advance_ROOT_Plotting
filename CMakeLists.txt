@@ -88,12 +88,11 @@ set(SOURCES
     src/FileHandler.cpp
     src/PlotManager.cpp
     src/ScriptEngine.cpp
-    src/RootDataInspector.cpp
+    src/PlotTypes.cpp
 )
 
 # ============================================================================
 # ROOT Dictionary
-# FIX 2: Added RootFileInspectorDialog.h so rootcling can see the class and
 #         the "Unused class rule" warning disappears.
 # FIX 3: Removed PlotManager.h, ScriptEngine.h, FileHandler.h from the
 #         rootcling header list — those managers don't inherit from TObject and
@@ -117,9 +116,7 @@ add_custom_command(
                      ${CMAKE_SOURCE_DIR}/include/ColumnSelector.h
                      ${CMAKE_SOURCE_DIR}/include/CSVPreviewDialog.h
                      ${CMAKE_SOURCE_DIR}/include/RootDataInspector.h
-                     ${CMAKE_SOURCE_DIR}/include/RootDataInspector.h
                      ${CMAKE_SOURCE_DIR}/include/DropTextEntry.h
-                     ${CMAKE_SOURCE_DIR}/include/PlotTypes.h                     
                      # LinkDef MUST be last
                      ${CMAKE_SOURCE_DIR}/include/LinkDef.h
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
@@ -128,9 +125,7 @@ add_custom_command(
         ${CMAKE_SOURCE_DIR}/include/ColumnSelector.h
         ${CMAKE_SOURCE_DIR}/include/CSVPreviewDialog.h
         ${CMAKE_SOURCE_DIR}/include/RootDataInspector.h
-        ${CMAKE_SOURCE_DIR}/include/RootDataInspector.h
         ${CMAKE_SOURCE_DIR}/include/DropTextEntry.h
-        ${CMAKE_SOURCE_DIR}/include/PlotTypes.h 
         ${CMAKE_SOURCE_DIR}/include/LinkDef.h
     COMMENT "Generating ROOT dictionary ProjectDict.cpp..."
     VERBATIM
@@ -146,7 +141,7 @@ add_executable(AdvancedPlotGUI ${SOURCES})
 # Copy PCM to binary dir after build so ROOT can find it at runtime
 add_custom_command(TARGET AdvancedPlotGUI POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${DICT_PCM}
+            ${CMAKE_BINARY_DIR}/ProjectDict_rdict.pcm
             ${CMAKE_BINARY_DIR}/libAdvancedPlotGUI_rdict.pcm
     COMMENT "Copying PCM file for runtime..."
 )
@@ -200,20 +195,14 @@ set_target_properties(AdvancedPlotGUI PROPERTIES
 )
 
 # ============================================================================
-# Run script
+# Run script — generated at configure time
 # ============================================================================
 file(WRITE ${CMAKE_BINARY_DIR}/run.sh
-"#!/bin/bash
-SCRIPT_DIR=\"\$( cd \"\$( dirname \"\${BASH_SOURCE[0]}\" )\" && pwd )\"
-export ROOT_INCLUDE_PATH=\"\${SCRIPT_DIR}:\${SCRIPT_DIR}/../include:\${ROOT_INCLUDE_PATH}\"
-export LD_LIBRARY_PATH=\"\${SCRIPT_DIR}:\${LD_LIBRARY_PATH}\"
-exec \"\${SCRIPT_DIR}/AdvancedPlotGUI\" \"\$@\"
+"#!/bin/sh
+export LD_LIBRARY_PATH=${ROOT_LIBRARY_DIR}:\${LD_LIBRARY_PATH}
+exec \${0%/*}/AdvancedPlotGUI \$@
 ")
-file(CHMOD ${CMAKE_BINARY_DIR}/run.sh
-    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                GROUP_READ GROUP_EXECUTE
-                WORLD_READ WORLD_EXECUTE
-)
+execute_process(COMMAND chmod +x ${CMAKE_BINARY_DIR}/run.sh)
 
 # ============================================================================
 # Installation

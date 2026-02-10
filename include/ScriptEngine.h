@@ -34,7 +34,7 @@ public:
     void ClearEditor();
     void ClearOutput();
     
-    ClassDef(ScriptEngine, 0)
+    //ClassDef(ScriptEngine, 0)
 };
 
 #endif // SCRIPTENGINE_H
