@@ -15,6 +15,23 @@
 // All private member names exactly match ColumnSelector.cpp
 // ============================================================================
 class ColumnSelectorDialog : public TGTransientFrame {
+
+
+public:
+    // Signature matches ColumnSelector.cpp line 7
+    ColumnSelectorDialog(const TGWindow* parent,
+                         const ColumnData* columnData,
+                         PlotConfig*       plotConfig,
+                         bool*             result);
+    virtual ~ColumnSelectorDialog() {}
+
+    void UpdateColumnVisibility();
+
+    Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
+
+    // ClassDef 0 avoids -Winconsistent-missing-override with ROOT 6.26
+    ClassDef(ColumnSelectorDialog, 0)
+
 private:
     // Out-parameters — owned by the caller (ColumnSelector wrapper)
     const ColumnData* data;
@@ -49,20 +66,8 @@ private:
     void PopulateComboBox(TGComboBox* combo, int startIdx);
     void DoOK();
     void DoCancel();
-    void UpdateColumnVisibility();
+    
 
-public:
-    // Signature matches ColumnSelector.cpp line 7
-    ColumnSelectorDialog(const TGWindow* parent,
-                         const ColumnData* columnData,
-                         PlotConfig*       plotConfig,
-                         bool*             result);
-    virtual ~ColumnSelectorDialog() {}
-
-    Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
-
-    // ClassDef 0 avoids -Winconsistent-missing-override with ROOT 6.26
-    ClassDef(ColumnSelectorDialog, 0)
 };
 
 // ============================================================================

@@ -22,6 +22,14 @@ DropTextEntry::DropTextEntry(const TGWindow* p,
 {
     SetToolTipText("Drag & drop any file here (ROOT, CSV, TXT)");
     SetDNDTarget(kTRUE);
+
+     static Atom_t dndTypes[] = {
+        gVirtualX->InternAtom("text/uri-list", kFALSE),
+        gVirtualX->InternAtom("text/plain",   kFALSE),
+        0
+    };
+    
+    gVirtualX->SetDNDAware(GetId(), dndTypes);
 }
 
 // ============================================================================

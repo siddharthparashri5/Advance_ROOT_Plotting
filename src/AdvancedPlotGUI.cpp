@@ -342,10 +342,10 @@ Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                     if (parm1 == kBrowseButton) {
                         fFileHandler->Browse();
                         fFileHandler->Load();
-                        const char* filepath = GetFilePath();
-                        if (filepath && strlen(filepath) > 0) {
-                            fFileHandler->LoadFromDrop(filepath);
-                        }
+                        //const char* filepath = GetFilePath();
+                        //if (filepath && strlen(filepath) > 0) {
+                        //    fFileHandler->LoadFromDrop(filepath);
+                        //}
                     }
                     // Plot operations
                     else if (parm1 == kAddPlotButton) {

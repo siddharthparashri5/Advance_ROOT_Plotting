@@ -100,6 +100,7 @@ void FileHandler::LoadFromDrop(const char* filepath)
 {
     if (!filepath || strlen(filepath) == 0) {
         return;
+        //FileHandler->LoadFromDrop(filepath); // this should show preview
     }
 
     fMainGUI->SetFilePath(filepath);
