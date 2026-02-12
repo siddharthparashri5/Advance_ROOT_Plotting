@@ -6,17 +6,17 @@
 #include <TGTextEntry.h>
 #include <TGNumberEntry.h>
 #include <TGListBox.h>
+#include <TGListView.h>
 #include <TGTextEdit.h>
 #include <TGTextView.h>
 #include <TGComboBox.h>
+#include <TGDNDManager.h>
 
-#include "DropTextEntry.h"
 #include "FileHandler.h"
 #include "PlotManager.h"
 #include "ScriptEngine.h"
 #include "PlotTypes.h"
 #include "FitUtils.h"
-#include "FileHandler.h"
 
 #include <vector>
 #include <string>
@@ -42,7 +42,7 @@ private:
 
     // GUI Components
     TGMainFrame* fMainFrame;
-    DropTextEntry* fFileEntry;
+    TGTextEntry* fFileEntry;  // CHANGED: Regular TGTextEntry instead of DropTextEntry
     TGTextButton* fBrowseButton;
     TGTextButton* fAddPlotButton;
     TGTextButton* fRemovePlotButton;
@@ -63,7 +63,7 @@ private:
     TGTextView* fScriptOutput;
     TGTextEntry* fCommandEntry;
     
-    // Manager objects - the new architecture!
+    // Manager objects
     FileHandler* fFileHandler;
     PlotManager* fPlotManager;
     ScriptEngine* fScriptEngine;
@@ -79,7 +79,8 @@ public:
     AdvancedPlotGUI(const TGWindow* p, UInt_t w, UInt_t h);
     virtual ~AdvancedPlotGUI();
 
-    void LoadFromDrop(const char* filepath);
+    // ADDED: Handle drag-and-drop of ROOT objects from TBrowser
+    virtual Bool_t HandleDNDDrop(TDNDData* data);
     
     // Message processing
     Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
@@ -101,7 +102,7 @@ public:
     void RebuildPlotListBox(const std::vector<PlotConfig>& configs);
     void ClearPlotListBox();
     
-    ClassDef(AdvancedPlotGUI, 0)
+    ClassDef(AdvancedPlotGUI, 1)
 };
 
 #endif // ADVANCEDPLOTGUI_H

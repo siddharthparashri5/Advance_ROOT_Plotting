@@ -11,7 +11,7 @@
 class AdvancedPlotGUI;  // Forward declaration
 
 // ============================================================================
-// FileHandler — manages file browsing, loading, and drag-and-drop.
+// FileHandler — manages file browsing and loading
 // Plain C++ class (no TObject inheritance, no ClassDef).
 // ============================================================================
 class FileHandler {
@@ -24,11 +24,9 @@ public:
     FileHandler(AdvancedPlotGUI* mainGUI);
     ~FileHandler();
 
-    // FIXED: Single Browse() that returns the selected filepath
+    // File operations
     std::string Browse();
-    
     void Load(const std::string& filepath);
-    void LoadFromDrop(const char* filepath);
     void LoadRootFile(const char* filepath);
     void LoadCSVFile(const char* filepath);
     void LoadCSVWithSettings(const char* filepath, char delim, 

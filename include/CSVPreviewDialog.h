@@ -14,26 +14,7 @@
 #include <string>
 #include <vector>
 
-/**
- * @class CSVPreviewDialog
- * @brief CSV/Text file import preview dialog (LibreOffice-style)
- * 
- * Provides an interactive preview of CSV/text file contents before loading,
- * allowing users to configure import settings such as:
- * - Delimiter character (comma, semicolon, tab, space, custom)
- * - Number of header rows to skip
- * - Data encoding
- * - Preview of first N rows with proper column separation
- * 
- * Example usage:
- * @code
- * CSVPreviewDialog dialog(gClient->GetRoot(), "data.csv");
- * if (dialog.DoModal() == 1) {
- *     char delimiter = dialog.GetDelimiter();
- *     Int_t skipRows = dialog.GetSkipRows();
- * }
- * @endcode
- */
+
 class CSVPreviewDialog : public TGTransientFrame {
 public:
     CSVPreviewDialog(const TGWindow* p, const char* filename);
@@ -47,6 +28,8 @@ public:
     
     // Modal dialog
     Int_t DoModal();
+    void UpdatePreview();
+    virtual void CloseWindow() { UnmapWindow(); }
 
 protected:
     virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
@@ -95,10 +78,11 @@ private:
     // Helper methods
     void LoadFile();
     void ParseFile();
-    void UpdatePreview();
+    
     std::vector<std::string> SplitLine(const std::string& line, char delimiter);
     Bool_t IsValidDelimiter(char c) const;
 
+    ClassDef(CSVPreviewDialog, 1)
     
 };
 

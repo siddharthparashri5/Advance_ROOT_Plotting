@@ -52,7 +52,7 @@ private:
 
     // ClassDef needed because TGGroupFrame inherits TObject.
     // Version 0 avoids -Winconsistent-missing-override with ROOT 6.26.
-    ClassDef(RootDataInspector, 0)
+    ClassDef(RootDataInspector, 1)
 };
 
 #endif // ROOTDATAINSPECTOR_H

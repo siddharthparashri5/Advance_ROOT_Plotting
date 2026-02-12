@@ -1,6 +1,6 @@
 #include "AdvancedPlotGUI.h"
 #include "DataReader.h"
-#include "PlotTypes.h"    // defines both PlotConfig and PlotCreator
+#include "PlotTypes.h"
 #include "FitUtils.h"
 #include "ErrorHandling.h"
 #include "FileHandler.h"
@@ -18,11 +18,20 @@
 #include <TGTextView.h>
 #include <TGTextBuffer.h>
 #include <TGFrame.h>
+#include <TGDNDManager.h>
+#include <TVirtualX.h>
 
 #include <TApplication.h>
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TRint.h>
+#include <TCanvas.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TH3.h>
+#include <TGraph.h>
+#include <TTree.h>
+#include <TBufferFile.h>
 
 ClassImp(AdvancedPlotGUI);
 
@@ -36,6 +45,9 @@ AdvancedPlotGUI::AdvancedPlotGUI(const TGWindow* p, UInt_t w, UInt_t h)
       fPlotManager(nullptr),
       fScriptEngine(nullptr)
 {
+    // Enable DND for ROOT objects from TBrowser
+    SetDNDTarget(kTRUE);
+    
     // Create manager objects
     fFileHandler = new FileHandler(this);
     fPlotManager = new PlotManager(this);
@@ -65,23 +77,17 @@ AdvancedPlotGUI::~AdvancedPlotGUI()
     delete fScriptEngine;
 }
 
-
-
 // ============================================================================
-// Build file section
+// Build file section - UPDATED: No drag-and-drop text entry
 // ============================================================================
 void AdvancedPlotGUI::BuildFileSection()
 {
     TGGroupFrame* fileGroup = new TGGroupFrame(this, "Data File");
     TGHorizontalFrame* fileFrame = new TGHorizontalFrame(fileGroup);
 
-    // Create text buffer and DropTextEntry (supports drag & drop)
-    TGTextBuffer* buffer = new TGTextBuffer(512);
-    fFileEntry = new DropTextEntry(fileFrame, buffer, this);
-    fFileEntry->SetToolTipText("Drag & drop a file here or type a path");
-    fFileEntry->SetToolTipText("← DROP FILE HERE (ROOT / CSV / TXT)");
-    // Also set placeholder text in the text buffer
-    fFileEntry->SetText("Drop file here or Browse...");
+    // Regular text entry
+    fFileEntry = new TGTextEntry(fileFrame);
+    fFileEntry->SetText("Use Browse button to load files...");
     fileFrame->AddFrame(fFileEntry, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,2,2));
 
     // Browse button
@@ -90,6 +96,13 @@ void AdvancedPlotGUI::BuildFileSection()
     fileFrame->AddFrame(fBrowseButton, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
 
     fileGroup->AddFrame(fileFrame, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
+    
+    // Add instruction label
+    TGLabel* dndLabel = new TGLabel(fileGroup, 
+        "Tip: Open ROOT files with Browse, then drag histograms from TBrowser onto this window");
+    dndLabel->SetTextColor(0x0000FF);  // Blue text
+    fileGroup->AddFrame(dndLabel, new TGLayoutHints(kLHintsLeft, 5,5,2,5));
+    
     AddFrame(fileGroup, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
 }
 
@@ -277,6 +290,87 @@ void AdvancedPlotGUI::BuildScriptPanel()
 }
 
 // ============================================================================
+// ADDED: Handle drag-and-drop of ROOT objects from TBrowser
+// Based on https://root.cern.ch/doc/master/drag__and__drop_8C.html
+// ============================================================================
+Bool_t AdvancedPlotGUI::HandleDNDDrop(TDNDData* data)
+{
+    if (!data || !data->fData) return kFALSE;
+    
+    // Get the ROOT object from DND data
+    TBufferFile buf(TBuffer::kRead, data->fDataLength, (void*)data->fData, kFALSE);
+    buf.SetReadMode();
+    TObject* obj = (TObject*)buf.ReadObjectAny(TObject::Class());
+    
+    if (!obj) return kFALSE;
+    
+    TString objName = obj->GetName();
+    TString objClass = obj->ClassName();
+    
+    printf("\n=== ROOT Object Dropped ===\n");
+    printf("Name:  %s\n", objName.Data());
+    printf("Class: %s\n", objClass.Data());
+    printf("===========================\n\n");
+    
+    // Create a new canvas and draw the object
+    static Int_t canvasCount = 0;
+    TCanvas* c = new TCanvas(Form("c_drop_%d", ++canvasCount), 
+                             Form("Dropped: %s", objName.Data()), 
+                             800, 600);
+    
+    // Draw based on object type
+    if (obj->InheritsFrom(TH1::Class())) {
+        TH1* h = (TH1*)obj->Clone();
+        h->Draw();
+        printf("Histogram drawn: %s\n", h->GetTitle());
+    }
+    else if (obj->InheritsFrom(TH2::Class())) {
+        TH2* h = (TH2*)obj->Clone();
+        h->Draw("COLZ");
+        printf("2D Histogram drawn: %s\n", h->GetTitle());
+    }
+    else if (obj->InheritsFrom(TH3::Class())) {
+        TH3* h = (TH3*)obj->Clone();
+        h->Draw("ISO");
+        printf("3D Histogram drawn\n");
+    }
+    else if (obj->InheritsFrom(TGraph::Class())) {
+        TGraph* g = (TGraph*)obj->Clone();
+        g->Draw("APL");
+        printf("Graph drawn: %s\n", g->GetTitle());
+    }
+    else if (obj->InheritsFrom(TTree::Class())) {
+        // For TTrees, just print info - user can interact via TBrowser
+        TTree* tree = (TTree*)obj;
+        printf("TTree dropped: %s\n", tree->GetName());
+        printf("  Entries: %lld\n", tree->GetEntries());
+        printf("  Branches: %d\n", tree->GetListOfBranches()->GetEntries());
+        printf("\nTip: Use TBrowser to explore tree contents,\n");
+        printf("     or drag individual branches to plot them.\n");
+        delete c;
+        return kTRUE;
+    }
+    else {
+        printf("Unsupported object type for plotting: %s\n", objClass.Data());
+        printf("Supported types: TH1, TH2, TH3, TGraph\n");
+        delete c;
+        return kFALSE;
+    }
+    
+    c->Modified();
+    c->Update();
+    gSystem->ProcessEvents();
+    
+    // Add message to output
+    if (fScriptOutput) {
+        fScriptOutput->AddLine(Form(">>> Dropped %s: %s", objClass.Data(), objName.Data()));
+        fScriptOutput->ShowBottom();
+    }
+    
+    return kTRUE;
+}
+
+// ============================================================================
 // Enable/disable plot controls
 // ============================================================================
 void AdvancedPlotGUI::EnablePlotControls(Bool_t enable)
@@ -319,40 +413,20 @@ void AdvancedPlotGUI::ClearPlotListBox()
 }
 
 // ============================================================================
-// Load file using FileHandler
+// Process messages
 // ============================================================================
-
-
-void AdvancedPlotGUI::LoadFromDrop(const char* filepath)
-{
-    if (!filepath || strlen(filepath) == 0) return;
-
-    if (fFileHandler) {
-        fFileHandler->LoadFromDrop(filepath);
-    }
-}
-
-// ============================================================================
-// PATCH FOR src/AdvancedPlotGUI.cpp
-// Replace the ProcessMessage method with this corrected version
-// ============================================================================
-
 Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
     switch (GET_MSG(msg)) {
         case kC_COMMAND:
             switch (GET_SUBMSG(msg)) {
                 case kCM_BUTTON:
-                    // ──────────────────────────────────────────────────
-                    // FIXED: Browse button now gets path and calls Load
-                    // ──────────────────────────────────────────────────
                     if (parm1 == kBrowseButton) {
                         std::string path = fFileHandler->Browse();
                         if (!path.empty()) {
                             fFileHandler->Load(path);
                         }
                     }
-                    // Plot operations
                     else if (parm1 == kAddPlotButton) {
                         fPlotManager->AddPlot(fFileHandler->GetCurrentData());
                     }
@@ -374,7 +448,6 @@ Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                                                  GetNRows(), GetNCols(), fitType, customFunc,
                                                  fFileHandler->GetCurrentData());
                     }
-                    // Script operations
                     else if (parm1 == kRunScriptButton) {
                         fScriptEngine->RunScript(fScriptLangCombo->GetSelected());
                     }
@@ -414,6 +487,7 @@ Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 // ============================================================================
 // Main
 // ============================================================================
+/*
 int main(int argc, char** argv)
 {
     // Batch mode
@@ -445,3 +519,4 @@ int main(int argc, char** argv)
     app.Run();
     return 0;
 }
+*/

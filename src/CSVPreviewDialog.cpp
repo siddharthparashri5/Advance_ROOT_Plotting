@@ -12,6 +12,8 @@
 #include <algorithm>
 #include <cctype>
 
+ClassImp(CSVPreviewDialog)
+
 // ============================================================================
 // Constructor
 // ============================================================================
@@ -126,6 +128,27 @@ CSVPreviewDialog::CSVPreviewDialog(const TGWindow* p, const char* filename)
     mainFrame->AddFrame(new TGHorizontal3DLine(mainFrame),
         new TGLayoutHints(kLHintsExpandX, 0, 0, 5, 5));
     
+    
+    // ─── PREVIEW PANEL ────────────────────────────────
+    
+    TGGroupFrame* previewFrame = new TGGroupFrame(mainFrame, "Data Preview", kVerticalFrame);
+
+    // TGTextEdit handles its own scrolling, no TGCanvas needed!
+    fPreviewText = new TGTextEdit(previewFrame, 600, 300);
+    fPreviewText->SetReadOnly(kTRUE);
+
+    // Set the font (Courier is best for CSV alignment)
+    const TGFont* courierFont = gClient->GetFont("-*-courier-medium-r-*-*-12-*-*-*-*-*-*-*");
+    if (courierFont) {
+        fPreviewText->SetFont(courierFont->GetFontStruct());
+    }
+
+    // Add the text edit directly to the GroupFrame
+    previewFrame->AddFrame(fPreviewText, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
+
+   
+/*
+
     // ─── PREVIEW PANEL ────────────────────────────────
     TGGroupFrame* previewFrame = new TGGroupFrame(mainFrame, "Data Preview", kVerticalFrame);
     
@@ -144,7 +167,7 @@ CSVPreviewDialog::CSVPreviewDialog(const TGWindow* p, const char* filename)
     
     previewFrame->AddFrame(canvas,
         new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
-    
+    */
     // Statistics
     TGHorizontalFrame* statsFrame = new TGHorizontalFrame(previewFrame);
     
@@ -155,12 +178,10 @@ CSVPreviewDialog::CSVPreviewDialog(const TGWindow* p, const char* filename)
     fColCountLabel = new TGLabel(statsFrame, "Columns: 0");
     statsFrame->AddFrame(fColCountLabel,
         new TGLayoutHints(kLHintsLeft, 5, 5, 5, 5));
-    
-    previewFrame->AddFrame(statsFrame,
-        new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
-    
-    mainFrame->AddFrame(previewFrame,
-        new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
+
+    previewFrame->AddFrame(statsFrame, new TGLayoutHints(kLHintsExpandX, 5, 5, 5, 5));
+
+    mainFrame->AddFrame(previewFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
     
     // ─── BUTTONS ──────────────────────────────────────
     TGHorizontalFrame* buttonFrame = new TGHorizontalFrame(mainFrame);
@@ -201,20 +222,30 @@ void CSVPreviewDialog::LoadFile()
 {
     fFileLines.clear();
     
+    // CRITICAL: Use .Data() to get the const char* from TString
     std::ifstream file(fFilename.Data());
+    
     if (!file.is_open()) {
-        fprintf(stderr, "CSVPreviewDialog: Cannot open file: %s\n", fFilename.Data());
+        fprintf(stderr, "ERROR: Could not open file: %s\n", fFilename.Data());
         return;
     }
     
     std::string line;
-    const Int_t maxLines = 1000; // Limit to prevent memory issues
-    
-    while (std::getline(file, line) && fFileLines.size() < maxLines) {
+    int count = 0;
+    // Read up to 100 lines for the preview
+    while (std::getline(file, line) && count < 100) {
+        // Remove trailing \r if it exists (Windows format)
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+        
         fFileLines.push_back(line);
+        count++;
     }
-    
     file.close();
+    
+    printf("DEBUG: Successfully loaded %d lines for preview.\n", (int)fFileLines.size());
+    
+    // Now that lines are loaded, call UpdatePreview to fill the widget
+    UpdatePreview();
 }
 
 // ============================================================================
@@ -270,10 +301,12 @@ void CSVPreviewDialog::UpdatePreview()
     fSelectedDelimiter = delimiter;
     fSkipRows = (Int_t)fSkipRowsEntry->GetNumber();
     fUseHeaderRow = fHeaderCheckBox->IsDown();
-    
+
+    if (!fPreviewText) return;
+
     // Clear preview
     fPreviewText->Clear();
-    
+
     Int_t rowIdx = 0;
     Int_t maxCols = 0;
     std::vector<std::vector<std::string>> allRows;
@@ -296,6 +329,13 @@ void CSVPreviewDialog::UpdatePreview()
     
     // Build formatted table text
     std::ostringstream tableText;
+
+    std::string finalTable = tableText.str();
+
+    // to prevent LoadBuffer(nullptr) or empty buffer crashes
+    if (finalTable.empty()) {
+        finalTable = "No data to preview with current settings.";
+    }
     
     // Calculate column widths (simple fixed width for now)
     const int colWidth = 20;
@@ -335,6 +375,7 @@ void CSVPreviewDialog::UpdatePreview()
         }
     }
     
+    /*
     // Set the text
     fPreviewText->LoadBuffer(tableText.str().c_str());
     
@@ -343,6 +384,17 @@ void CSVPreviewDialog::UpdatePreview()
     fColCountLabel->SetText(Form("Columns: %d", maxCols));
     
     fPreviewText->Layout();
+    */
+    // Set the text
+    fPreviewText->SetText(new TGText(finalTable.c_str()));
+    
+    // Force a redraw of the GUI components
+    fRowCountLabel->SetText(Form("Rows: %d", (int)allRows.size()));
+    fColCountLabel->SetText(Form("Columns: %d", maxCols));
+    
+    // Important for TGTextEdit updates
+    fPreviewText->Update(); 
+    Layout();
 }
 
 // ============================================================================
@@ -355,6 +407,16 @@ Bool_t CSVPreviewDialog::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
             switch(GET_SUBMSG(msg)) {
                 case kCM_BUTTON:
                     if (parm1 == kOkButton) {
+                        fModalResult = 1;
+                        UpdatePreview(); // Ensure final settings are captured
+                        //UnmapWindow();   
+                        return kTRUE;
+                    } else if (parm1 == kCancelButton) {
+                        fModalResult = 0;
+                        UnmapWindow();
+                        return kTRUE;
+                    }
+                    /*if (parm1 == kOkButton) {
                         // Update settings and close
                         fModalResult = 1;
                         UpdatePreview();
@@ -364,7 +426,7 @@ Bool_t CSVPreviewDialog::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                         fModalResult = 0;
                         CloseWindow();
                         return kTRUE;
-                    }
+                    }*/
                     break;
                     
                 case kCM_COMBOBOX:

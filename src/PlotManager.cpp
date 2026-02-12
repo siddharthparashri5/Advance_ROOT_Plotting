@@ -1,6 +1,6 @@
 #include "PlotManager.h"
 #include "AdvancedPlotGUI.h"
-#include "ColumnSelector.h"
+#include "ColumnSelectorDialog.h"
 #include "PlotTypes.h"    // defines PlotConfig and PlotCreator
 #include "ErrorHandling.h"
 
@@ -57,19 +57,27 @@ void PlotManager::AddPlot(const ColumnData& data)
     }
     
     ColumnSelector* selector = new ColumnSelector(gClient->GetRoot(), data);
-    PlotConfig* config = selector->GetPlotConfig();
-    
-    if (config) {
-        fPlotConfigs.push_back(*config);
+    Int_t ret = selector->DoModal(); 
+
+    if (ret == 1) {
+        PlotConfig* config = selector->GetPlotConfig();
         
-        TString plotDesc = Form("Plot %zu: %s", 
-            fPlotConfigs.size(), 
-            config->GetDescription().c_str());
-        
-        fMainGUI->AddPlotToListBox(plotDesc.Data(), fPlotConfigs.size() - 1);
-        
-        delete config;
+        if (config) {
+            fPlotConfigs.push_back(*config);
+            
+            TString plotDesc = Form("Plot %zu: %s", 
+                fPlotConfigs.size(), 
+                config->GetDescription().c_str());
+            
+            fMainGUI->AddPlotToListBox(plotDesc.Data(), (Int_t)fPlotConfigs.size() - 1);
+            
+            // Cleanup the config pointer if GetPlotConfig() created a new one
+            delete config; 
+        }
     }
+
+    // 4. Cleanup the dialog object
+    delete selector;
 }
 
 // ============================================================================

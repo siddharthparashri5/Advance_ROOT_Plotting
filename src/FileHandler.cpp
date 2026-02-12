@@ -8,6 +8,7 @@
 #include <TGMsgBox.h>
 #include <TGClient.h>
 #include <TSystem.h>
+#include <TBrowser.h>
 #include <fstream>
 #include <sstream>
 
@@ -15,8 +16,8 @@
 // Constructor
 // ============================================================================
 FileHandler::FileHandler(AdvancedPlotGUI* mainGUI)
-    : fMainGUI(mainGUI),
-      fCurrentRootFile(nullptr)
+    : fMainGUI(mainGUI)
+      //fCurrentRootFile(nullptr)
 {
 }
 
@@ -33,7 +34,7 @@ FileHandler::~FileHandler()
 }
 
 // ============================================================================
-// Browse for file - FIXED: Returns the selected filepath
+// Browse for file
 // ============================================================================
 std::string FileHandler::Browse()
 {
@@ -60,13 +61,13 @@ std::string FileHandler::Browse()
 }
 
 // ============================================================================
-// Load file based on type - FIXED: Takes filepath parameter
+// Load file based on type
 // ============================================================================
 void FileHandler::Load(const std::string& filepath)
 {
     if (filepath.empty()) {
         new TGMsgBox(gClient->GetRoot(), fMainGUI,
-            "Error", "Please enter a file path or drag a file.",
+            "Error", "Please enter a file path.",
             kMBIconExclamation, kMBOk);
         return;
     }
@@ -78,7 +79,13 @@ void FileHandler::Load(const std::string& filepath)
         return;
     }
 
-    // Load CSV/text data using DataReader
+    // Check if CSV file - show preview dialog
+    if (filename.EndsWith(".csv")) {
+        LoadCSVFile(filepath.c_str());
+        return;
+    }
+
+    // Load other text data using DataReader
     if (!DataReader::ReadFile(filepath, fCurrentData)) {
         new TGMsgBox(gClient->GetRoot(), fMainGUI,
             "Error", "Failed to load data file. Check console for details.",
@@ -95,31 +102,7 @@ void FileHandler::Load(const std::string& filepath)
 }
 
 // ============================================================================
-// Load file from drag-and-drop
-// ============================================================================
-void FileHandler::LoadFromDrop(const char* filepath)
-{
-    if (!filepath || strlen(filepath) == 0) {
-        return;
-    }
-
-    fMainGUI->SetFilePath(filepath);
-    
-    // Determine file type and load accordingly
-    TString filename(filepath);
-    
-    if (filename.EndsWith(".root")) {
-        LoadRootFile(filepath);
-    } else if (filename.EndsWith(".csv") || filename.EndsWith(".txt") || 
-               filename.EndsWith(".dat")) {
-        LoadCSVFile(filepath);
-    } else {
-        Load(std::string(filepath));
-    }
-}
-
-// ============================================================================
-// Load ROOT file with inspector dialog
+// Load ROOT file with TBrowser
 // ============================================================================
 void FileHandler::LoadRootFile(const char* filepath)
 {
@@ -139,26 +122,18 @@ void FileHandler::LoadRootFile(const char* filepath)
         return;
     }
 
-    // FIXED: Also populate fCurrentData for plotting from histograms/trees
-    if (DataReader::ReadROOTFile(filepath, fCurrentData)) {
-        fMainGUI->EnablePlotControls(true);
-    }
+    // Open in TBrowser for exploration
+    new TBrowser("browser", fCurrentRootFile);
 
-    // Wrap RootDataInspector (a TGGroupFrame) in a transient window
-    TGTransientFrame* win = new TGTransientFrame(
-        gClient->GetRoot(), nullptr, 400, 500);
-    win->SetWindowName(Form("ROOT Inspector — %s",
-        gSystem->BaseName(filepath)));
-    win->SetCleanup(kDeepCleanup);
-
-    RootDataInspector* inspector = new RootDataInspector(win, filepath);
-    inspector->LoadFile(filepath);
-
-    win->AddFrame(inspector, new TGLayoutHints(
-        kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
-    win->MapSubwindows();
-    win->Resize(win->GetDefaultSize());
-    win->MapWindow();
+    new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        "ROOT File Loaded",
+        "ROOT file opened in TBrowser.\n\n"
+        "You can:\n"
+        "• Drag histograms/graphs from TBrowser onto this window to plot them\n"
+        "• Double-click objects in TBrowser to view them\n"
+        "• Explore the file structure\n\n"
+        "Tip: Drag objects from TBrowser window to the main GUI window!",
+        kMBIconAsterisk, kMBOk);
 }
 
 // ============================================================================
@@ -180,16 +155,22 @@ void FileHandler::LoadCSVFile(const char* filepath)
     
     delete preview;
     
-    // FIXED: Load with custom settings instead of calling Load()
     LoadCSVWithSettings(filepath, delimiter, skipRows, useHeader);
 }
 
 // ============================================================================
-// ADDED: Load CSV with user-specified settings
+// Load CSV with user-specified settings
 // ============================================================================
 void FileHandler::LoadCSVWithSettings(const char* filepath, char delim, 
                                       Int_t skipRows, Bool_t useHeader)
 {
+    
+    std::cout << "Starting load for: " << filepath << std::endl;
+    if (!fMainGUI) {
+        std::cout << "CRITICAL: fMainGUI is NULL!" << std::endl;
+        return;
+    }
+    
     fCurrentData = ColumnData();  // clear
     
     std::ifstream file(filepath);
@@ -218,7 +199,9 @@ void FileHandler::LoadCSVWithSettings(const char* filepath, char delim,
             if (!token.empty() && token.back() == '\r') token.pop_back();
             fCurrentData.headers.push_back(token);
         }
-        fCurrentData.data.resize(fCurrentData.headers.size());
+        if (!fCurrentData.headers.empty()) {
+            fCurrentData.data.assign(fCurrentData.headers.size(), std::vector<double>());}
+        //fCurrentData.data.resize(fCurrentData.headers.size());
     }
 
     // Data rows
@@ -238,8 +221,8 @@ void FileHandler::LoadCSVWithSettings(const char* filepath, char delim,
         }
         
         // First data row — create default headers if not using header row
-        if (fCurrentData.data.empty()) {
-            fCurrentData.data.resize(tokens.size());
+        if (fCurrentData.data.empty() && !tokens.empty()) {
+            fCurrentData.data.assign(tokens.size(), std::vector<double>());
             if (fCurrentData.headers.empty()) {
                 for (size_t i = 0; i < tokens.size(); ++i)
                     fCurrentData.headers.push_back(Form("Col%zu", i));
@@ -247,18 +230,19 @@ void FileHandler::LoadCSVWithSettings(const char* filepath, char delim,
         }
         
         // Parse numeric values
-        for (size_t i = 0; i < tokens.size() && i < fCurrentData.data.size(); ++i) {
+        size_t numCols = std::min(tokens.size(), fCurrentData.data.size());
+        for (size_t i = 0; i < numCols; ++i) {
             try {
-                double val = std::stod(tokens[i]);
-                fCurrentData.data[i].push_back(val);
-            } catch (...) {
-                // Skip non-numeric values
-            }
+                if (!tokens[i].empty()) {
+                    double val = std::stod(tokens[i]);
+                    fCurrentData.data[i].push_back(val);
+                }
+            } catch (...) { continue; }
         }
     }
     file.close();
 
-    if (!fCurrentData.data.empty()) {
+    if (fMainGUI && !fCurrentData.data.empty()) {
         fMainGUI->EnablePlotControls(true);
         new TGMsgBox(gClient->GetRoot(), fMainGUI,
             "Success", Form("Loaded %d columns, %d rows from %s",
