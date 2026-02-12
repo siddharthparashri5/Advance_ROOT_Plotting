@@ -24,11 +24,15 @@ public:
     FileHandler(AdvancedPlotGUI* mainGUI);
     ~FileHandler();
 
-    void Browse();
-    void Load();
+    // FIXED: Single Browse() that returns the selected filepath
+    std::string Browse();
+    
+    void Load(const std::string& filepath);
     void LoadFromDrop(const char* filepath);
     void LoadRootFile(const char* filepath);
-    void LoadCSVFile (const char* filepath);
+    void LoadCSVFile(const char* filepath);
+    void LoadCSVWithSettings(const char* filepath, char delim, 
+                             Int_t skipRows, Bool_t useHeader);
 
     const ColumnData& GetCurrentData()     const { return fCurrentData;    }
     TFile*            GetCurrentRootFile() const { return fCurrentRootFile; }

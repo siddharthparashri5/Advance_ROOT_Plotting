@@ -29,14 +29,25 @@ public:
     
     virtual ~DropTextEntry();
 
-    // DND event handler - only method ROOT provides for this
-    virtual Bool_t HandleDNDDrop(TDNDData* data);
+    // DND event handler - FIXED: added override keyword
+    virtual Bool_t HandleDNDDrop(TDNDData* data) override;
+    
+    // ADDED: Override DoRedraw to lazily register DND after window is mapped
+    virtual void DoRedraw() override;
     
     const char* GetDroppedFilePath() const { return fDroppedPath.Data(); }
+
+    ClassDef(DropTextEntry, 0)
 
 private:
     AdvancedPlotGUI* fGUI;
     TString fDroppedPath;
+    
+    // ADDED: DND registration flag and cached atoms
+    Bool_t fDNDRegistered;
+    Atom_t fAtomUri;
+    Atom_t fAtomText;
+    Atom_t fAtomRoot;
     
     // Helper methods
     TString ExtractFilePath(const char* uriText);

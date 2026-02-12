@@ -2,12 +2,14 @@
 #include "AdvancedPlotGUI.h"
 #include "CSVPreviewDialog.h"
 #include "RootDataInspector.h"
+#include "DataReader.h"
 
 #include <TGFileDialog.h>
 #include <TGMsgBox.h>
 #include <TGClient.h>
 #include <TSystem.h>
-
+#include <fstream>
+#include <sstream>
 
 // ============================================================================
 // Constructor
@@ -31,15 +33,16 @@ FileHandler::~FileHandler()
 }
 
 // ============================================================================
-// Browse for file
+// Browse for file - FIXED: Returns the selected filepath
 // ============================================================================
-void FileHandler::Browse()
+std::string FileHandler::Browse()
 {
     const char* filetypes[] = {
         "All files", "*",
         "ROOT files", "*.root",
         "CSV files", "*.csv",
-        "Text files", "*.txt;*.dat",
+        "Text files", "*.txt",
+        "Data files", "*.dat",
         nullptr, nullptr
     };
     
@@ -48,18 +51,20 @@ void FileHandler::Browse()
     
     new TGFileDialog(gClient->GetRoot(), fMainGUI, kFDOpen, &fileInfo);
     
-    if (fileInfo.fFilename) {
+    if (fileInfo.fFilename && strlen(fileInfo.fFilename) > 0) {
         fMainGUI->SetFilePath(fileInfo.fFilename);
+        return std::string(fileInfo.fFilename);
     }
+    
+    return "";
 }
 
 // ============================================================================
-// Load file based on type
+// Load file based on type - FIXED: Takes filepath parameter
 // ============================================================================
-void FileHandler::Load()
+void FileHandler::Load(const std::string& filepath)
 {
-    const char* filepath = fMainGUI->GetFilePath();
-    if (!filepath || strlen(filepath) == 0) {
+    if (filepath.empty()) {
         new TGMsgBox(gClient->GetRoot(), fMainGUI,
             "Error", "Please enter a file path or drag a file.",
             kMBIconExclamation, kMBOk);
@@ -67,17 +72,13 @@ void FileHandler::Load()
     }
 
     // Check if ROOT file
-    TString filename(filepath);
+    TString filename(filepath.c_str());
     if (filename.EndsWith(".root")) {
-        // This should have been handled by LoadRootFile already
-        // But if called directly, handle it here too
-        if (!fCurrentRootFile || TString(fCurrentRootFile->GetName()) != filename) {
-            LoadRootFile(filepath);
-        }
+        LoadRootFile(filepath.c_str());
         return;
     }
 
-    // Load CSV/text data
+    // Load CSV/text data using DataReader
     if (!DataReader::ReadFile(filepath, fCurrentData)) {
         new TGMsgBox(gClient->GetRoot(), fMainGUI,
             "Error", "Failed to load data file. Check console for details.",
@@ -88,8 +89,8 @@ void FileHandler::Load()
     fMainGUI->EnablePlotControls(true);
 
     new TGMsgBox(gClient->GetRoot(), fMainGUI,
-        "Success", Form("Data loaded successfully!\nRows: %zu\nColumns: %zu",
-            fCurrentData.data.size(), fCurrentData.headers.size()),
+        "Success", Form("Data loaded successfully!\nRows: %d\nColumns: %d",
+            fCurrentData.GetNumRows(), fCurrentData.GetNumColumns()),
         kMBIconAsterisk, kMBOk);
 }
 
@@ -100,7 +101,6 @@ void FileHandler::LoadFromDrop(const char* filepath)
 {
     if (!filepath || strlen(filepath) == 0) {
         return;
-        //FileHandler->LoadFromDrop(filepath); // this should show preview
     }
 
     fMainGUI->SetFilePath(filepath);
@@ -114,7 +114,7 @@ void FileHandler::LoadFromDrop(const char* filepath)
                filename.EndsWith(".dat")) {
         LoadCSVFile(filepath);
     } else {
-        Load();
+        Load(std::string(filepath));
     }
 }
 
@@ -137,6 +137,11 @@ void FileHandler::LoadRootFile(const char* filepath)
             kMBIconStop, kMBOk);
         fCurrentRootFile = nullptr;
         return;
+    }
+
+    // FIXED: Also populate fCurrentData for plotting from histograms/trees
+    if (DataReader::ReadROOTFile(filepath, fCurrentData)) {
+        fMainGUI->EnablePlotControls(true);
     }
 
     // Wrap RootDataInspector (a TGGroupFrame) in a transient window
@@ -162,8 +167,109 @@ void FileHandler::LoadRootFile(const char* filepath)
 void FileHandler::LoadCSVFile(const char* filepath)
 {
     CSVPreviewDialog* preview = new CSVPreviewDialog(gClient->GetRoot(), filepath);
-    preview->DoModal();
+    Int_t ret = preview->DoModal();
     
-    // After user configures CSV, load the actual data
-    Load();
+    if (ret != 1) {
+        delete preview;
+        return;  // User cancelled
+    }
+    
+    char    delimiter = preview->GetDelimiter();
+    Int_t   skipRows  = preview->GetSkipRows();
+    Bool_t  useHeader = preview->UseHeaderRow();
+    
+    delete preview;
+    
+    // FIXED: Load with custom settings instead of calling Load()
+    LoadCSVWithSettings(filepath, delimiter, skipRows, useHeader);
+}
+
+// ============================================================================
+// ADDED: Load CSV with user-specified settings
+// ============================================================================
+void FileHandler::LoadCSVWithSettings(const char* filepath, char delim, 
+                                      Int_t skipRows, Bool_t useHeader)
+{
+    fCurrentData = ColumnData();  // clear
+    
+    std::ifstream file(filepath);
+    if (!file.is_open()) {
+        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+            "Error", Form("Cannot open: %s", filepath),
+            kMBIconStop, kMBOk);
+        return;
+    }
+    
+    std::string line;
+    int lineNum = 0;
+
+    // Skip rows
+    while (lineNum < skipRows && std::getline(file, line)) lineNum++;
+
+    // Header row
+    if (useHeader && std::getline(file, line)) {
+        lineNum++;
+        std::stringstream ss(line);
+        std::string token;
+        while (std::getline(ss, token, delim)) {
+            // Trim whitespace
+            token.erase(0, token.find_first_not_of(" \t\r\n"));
+            token.erase(token.find_last_not_of(" \t\r\n") + 1);
+            if (!token.empty() && token.back() == '\r') token.pop_back();
+            fCurrentData.headers.push_back(token);
+        }
+        fCurrentData.data.resize(fCurrentData.headers.size());
+    }
+
+    // Data rows
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+        
+        std::stringstream ss(line);
+        std::string token;
+        std::vector<std::string> tokens;
+        
+        while (std::getline(ss, token, delim)) {
+            // Trim whitespace
+            token.erase(0, token.find_first_not_of(" \t\r\n"));
+            token.erase(token.find_last_not_of(" \t\r\n") + 1);
+            if (!token.empty() && token.back() == '\r') token.pop_back();
+            tokens.push_back(token);
+        }
+        
+        // First data row — create default headers if not using header row
+        if (fCurrentData.data.empty()) {
+            fCurrentData.data.resize(tokens.size());
+            if (fCurrentData.headers.empty()) {
+                for (size_t i = 0; i < tokens.size(); ++i)
+                    fCurrentData.headers.push_back(Form("Col%zu", i));
+            }
+        }
+        
+        // Parse numeric values
+        for (size_t i = 0; i < tokens.size() && i < fCurrentData.data.size(); ++i) {
+            try {
+                double val = std::stod(tokens[i]);
+                fCurrentData.data[i].push_back(val);
+            } catch (...) {
+                // Skip non-numeric values
+            }
+        }
+    }
+    file.close();
+
+    if (!fCurrentData.data.empty()) {
+        fMainGUI->EnablePlotControls(true);
+        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+            "Success", Form("Loaded %d columns, %d rows from %s",
+                fCurrentData.GetNumColumns(),
+                fCurrentData.GetNumRows(),
+                gSystem->BaseName(filepath)),
+            kMBIconAsterisk, kMBOk);
+    } else {
+        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+            "Warning", "No numeric data found in file.\n"
+                       "Check delimiter and format.",
+            kMBIconExclamation, kMBOk);
+    }
 }

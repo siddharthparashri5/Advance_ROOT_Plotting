@@ -13,6 +13,7 @@
 // ============================================================================
 // ColumnSelectorDialog
 // All private member names exactly match ColumnSelector.cpp
+// FIXED: Changed TGRadioButton to TGCheckButton to match implementation
 // ============================================================================
 class ColumnSelectorDialog : public TGTransientFrame {
 
@@ -25,8 +26,6 @@ public:
                          bool*             result);
     virtual ~ColumnSelectorDialog() {}
 
-    void UpdateColumnVisibility();
-
     Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
 
     // ClassDef 0 avoids -Winconsistent-missing-override with ROOT 6.26
@@ -38,7 +37,7 @@ private:
     PlotConfig*       config;
     bool*             dialogResult;
 
-    // Plot-type radio buttons
+    // FIXED: Plot-type checkboxes (not radio buttons - we handle mutual exclusion manually)
     TGCheckButton* radioTGraph;
     TGCheckButton* radioTGraphErrors;
     TGCheckButton* radioTH1D;
@@ -66,6 +65,7 @@ private:
     void PopulateComboBox(TGComboBox* combo, int startIdx);
     void DoOK();
     void DoCancel();
+    void UpdateColumnVisibility();
     
 
 };

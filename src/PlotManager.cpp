@@ -47,6 +47,15 @@ PlotManager::~PlotManager()
 // ============================================================================
 void PlotManager::AddPlot(const ColumnData& data)
 {
+    if (data.data.empty() || data.headers.empty()) {
+        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+            "No Data", 
+            "No data loaded. Please load a CSV or TXT file first.\n"
+            "ROOT files are viewed in the Inspector, not plotted directly.",
+            kMBIconExclamation, kMBOk);
+        return;
+    }
+    
     ColumnSelector* selector = new ColumnSelector(gClient->GetRoot(), data);
     PlotConfig* config = selector->GetPlotConfig();
     

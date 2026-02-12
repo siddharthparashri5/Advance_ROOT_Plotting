@@ -6,7 +6,7 @@
 #include <TGTextEntry.h>
 #include <TGComboBox.h>
 #include <TGNumberEntry.h>
-#include <TGTable.h>
+#include <TGTextEdit.h>
 #include <TGLabel.h>
 #include <TGMsgBox.h>
 
@@ -28,7 +28,7 @@
  * Example usage:
  * @code
  * CSVPreviewDialog dialog(gClient->GetRoot(), "data.csv");
- * if (dialog.DoModal() == kMBOk) {
+ * if (dialog.DoModal() == 1) {
  *     char delimiter = dialog.GetDelimiter();
  *     Int_t skipRows = dialog.GetSkipRows();
  * }
@@ -50,7 +50,6 @@ public:
 
 protected:
     virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
-    TGListView *fListView;
 
 private:
     // File information
@@ -62,6 +61,7 @@ private:
     Int_t fSkipRows;
     Bool_t fUseHeaderRow;
     std::string fEncoding;
+    Int_t fModalResult;  // ADDED: to track OK/Cancel
     
     // GUI Components
     TGLabel* fFilenameLabel;
@@ -70,7 +70,11 @@ private:
     TGNumberEntry* fSkipRowsEntry;
     TGCheckButton* fHeaderCheckBox;
     TGComboBox* fEncodingCombo;
-    TGTable* fPreviewTable;
+    
+    // FIXED: Using TGTextEdit instead of TGTable/TGListView for ROOT 6.26 compatibility
+    TGTextEdit* fPreviewText;
+    TGListView* fListView;  // Keep declaration for compatibility but use TGTextEdit
+    
     TGLabel* fRowCountLabel;
     TGLabel* fColCountLabel;
     

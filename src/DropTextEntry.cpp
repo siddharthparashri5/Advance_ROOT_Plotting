@@ -18,18 +18,17 @@ DropTextEntry::DropTextEntry(const TGWindow* p,
                              TGTextBuffer* buffer,
                              AdvancedPlotGUI* gui)
     : TGTextEntry(p, buffer),
-      fGUI(gui)
+      fGUI(gui),
+      fDNDRegistered(kFALSE),
+      fAtomUri(0),
+      fAtomText(0),
+      fAtomRoot(0)
 {
-    SetToolTipText("Drag & drop any file here (ROOT, CSV, TXT)");
+    SetToolTipText("← DROP FILE HERE (ROOT / CSV / TXT)");
     SetDNDTarget(kTRUE);
-
-     static Atom_t dndTypes[] = {
-        gVirtualX->InternAtom("text/uri-list", kFALSE),
-        gVirtualX->InternAtom("text/plain",   kFALSE),
-        0
-    };
     
-    gVirtualX->SetDNDAware(GetId(), dndTypes);
+    // REMOVED: Don't call SetDNDAware here - window not yet mapped!
+    // Will be done in DoRedraw() after window is realized
 }
 
 // ============================================================================
@@ -37,6 +36,28 @@ DropTextEntry::DropTextEntry(const TGWindow* p,
 // ============================================================================
 DropTextEntry::~DropTextEntry()
 {
+}
+
+// ============================================================================
+// ADDED: Override DoRedraw to lazily register DND after window is mapped
+// ============================================================================
+void DropTextEntry::DoRedraw()
+{
+    TGTextEntry::DoRedraw();
+    
+    // Register DND only once, after window ID is valid
+    if (!fDNDRegistered && GetId() != 0) {
+        // Cache atom values
+        fAtomUri  = gVirtualX->InternAtom("text/uri-list",    kFALSE);
+        fAtomText = gVirtualX->InternAtom("text/plain",       kFALSE);
+        fAtomRoot = gVirtualX->InternAtom("application/root", kFALSE);
+        
+        // Register DND types
+        Atom_t dndTypes[] = { fAtomUri, fAtomText, 0 };
+        gVirtualX->SetDNDAware(GetId(), dndTypes);
+        
+        fDNDRegistered = kTRUE;
+    }
 }
 
 // ============================================================================
@@ -117,8 +138,7 @@ Bool_t DropTextEntry::IsValidFile(const char* filepath)
 }
 
 // ============================================================================
-// Handle drag-and-drop entry
-// This is the main DND handler called by ROOT when a file is dropped
+// Handle drag-and-drop entry - FIXED: Uses cached atoms
 // ============================================================================
 Bool_t DropTextEntry::HandleDNDDrop(TDNDData* data) 
 {
@@ -126,16 +146,11 @@ Bool_t DropTextEntry::HandleDNDDrop(TDNDData* data)
         return kFALSE;
     }
 
-    // Get the Atoms we need via gVirtualX
-    Atom_t atomText = gVirtualX->InternAtom("text/plain", kFALSE);
-    Atom_t atomUri  = gVirtualX->InternAtom("text/uri-list", kFALSE);
-    Atom_t atomRoot = gVirtualX->InternAtom("application/root", kFALSE);
-
-    // Extract file path based on MIME type
+    // Extract file path based on MIME type (using cached atoms)
     TString filePath;
     Bool_t success = kFALSE;
 
-    if (data->fDataType == atomUri) {
+    if (data->fDataType == fAtomUri) {
         // Handle file URIs (most common from file managers)
         const char* uriText = reinterpret_cast<const char*>(data->fData);
         filePath = ExtractFilePath(uriText);
@@ -151,7 +166,7 @@ Bool_t DropTextEntry::HandleDNDDrop(TDNDData* data)
             fprintf(stderr, "DropTextEntry: Invalid file path: %s\n", filePath.Data());
         }
     } 
-    else if (data->fDataType == atomText) {
+    else if (data->fDataType == fAtomText) {
         // Handle plain text (fallback)
         const char* text = reinterpret_cast<const char*>(data->fData);
         filePath = TString(text).Strip();
@@ -164,7 +179,7 @@ Bool_t DropTextEntry::HandleDNDDrop(TDNDData* data)
             success = kTRUE;
         }
     } 
-    else if (data->fDataType == atomRoot) {
+    else if (data->fDataType == fAtomRoot) {
         // Handle ROOT objects
         TBufferFile buffer(TBuffer::kRead, data->fDataLength, (void*)data->fData);
         buffer.SetReadMode();

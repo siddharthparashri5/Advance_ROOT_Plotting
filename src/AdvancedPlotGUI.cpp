@@ -79,6 +79,9 @@ void AdvancedPlotGUI::BuildFileSection()
     TGTextBuffer* buffer = new TGTextBuffer(512);
     fFileEntry = new DropTextEntry(fileFrame, buffer, this);
     fFileEntry->SetToolTipText("Drag & drop a file here or type a path");
+    fFileEntry->SetToolTipText("← DROP FILE HERE (ROOT / CSV / TXT)");
+    // Also set placeholder text in the text buffer
+    fFileEntry->SetText("Drop file here or Browse...");
     fileFrame->AddFrame(fFileEntry, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 5,5,2,2));
 
     // Browse button
@@ -330,22 +333,24 @@ void AdvancedPlotGUI::LoadFromDrop(const char* filepath)
 }
 
 // ============================================================================
-// Process messages - now just a dispatcher!
+// PATCH FOR src/AdvancedPlotGUI.cpp
+// Replace the ProcessMessage method with this corrected version
 // ============================================================================
+
 Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
     switch (GET_MSG(msg)) {
         case kC_COMMAND:
             switch (GET_SUBMSG(msg)) {
                 case kCM_BUTTON:
-                    // File operations
+                    // ──────────────────────────────────────────────────
+                    // FIXED: Browse button now gets path and calls Load
+                    // ──────────────────────────────────────────────────
                     if (parm1 == kBrowseButton) {
-                        fFileHandler->Browse();
-                        fFileHandler->Load();
-                        //const char* filepath = GetFilePath();
-                        //if (filepath && strlen(filepath) > 0) {
-                        //    fFileHandler->LoadFromDrop(filepath);
-                        //}
+                        std::string path = fFileHandler->Browse();
+                        if (!path.empty()) {
+                            fFileHandler->Load(path);
+                        }
                     }
                     // Plot operations
                     else if (parm1 == kAddPlotButton) {

@@ -21,7 +21,8 @@ CSVPreviewDialog::CSVPreviewDialog(const TGWindow* p, const char* filename)
       fSelectedDelimiter(','),
       fSkipRows(0),
       fUseHeaderRow(kTRUE),
-      fEncoding("UTF-8")
+      fEncoding("UTF-8"),
+      fListView(nullptr)
 {
     SetWindowName("CSV/Text File Import Preview");
     SetMWMHints(kMWMDecorAll, kMWMFuncAll, kMWMInputModeless);
@@ -29,11 +30,6 @@ CSVPreviewDialog::CSVPreviewDialog(const TGWindow* p, const char* filename)
     // Main layout
     TGVerticalFrame* mainFrame = new TGVerticalFrame(this);
     AddFrame(mainFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
-
-    fListView = new TGListView(this, 400, 300); // Use 'this' if inside the dialog
-    TGLVContainer *container = new TGLVContainer(fListView);
-    fListView->SetContainer(container);
-    fListView->SetViewMode(kLVSmallIcons); // Standard list view mode
     
     // ─── FILE INFO ────────────────────────────────────
     TGHorizontalFrame* infoFrame = new TGHorizontalFrame(mainFrame);
@@ -74,7 +70,6 @@ CSVPreviewDialog::CSVPreviewDialog(const TGWindow* p, const char* filename)
     fCustomDelimEntry = new TGTextEntry(delimFrame);
     fCustomDelimEntry->SetMaxLength(1);
     fCustomDelimEntry->SetText(",");
-    //fCustomDelimEntry->Disable();
     fCustomDelimEntry->SetState(kFALSE); 
     delimFrame->AddFrame(fCustomDelimEntry,
         new TGLayoutHints(kLHintsExpandX, 5, 5, 2, 5));
@@ -131,18 +126,23 @@ CSVPreviewDialog::CSVPreviewDialog(const TGWindow* p, const char* filename)
     mainFrame->AddFrame(new TGHorizontal3DLine(mainFrame),
         new TGLayoutHints(kLHintsExpandX, 0, 0, 5, 5));
     
-    // ─── PREVIEW TABLE ────────────────────────────────
+    // ─── PREVIEW PANEL ────────────────────────────────
     TGGroupFrame* previewFrame = new TGGroupFrame(mainFrame, "Data Preview", kVerticalFrame);
     
-    // Table for preview
-    fPreviewTable = new TGTable(previewFrame, 100, 0, 100, 20);
-    //fPreviewTable->SetSelectableRow(kTRUE);
-    //fPreviewTable->SetSelectableColumn(kFALSE);
-    //fPreviewTable->SetRowHeaderWidth(50);
-    //fPreviewTable->GetDefaultWidth(80);
-    //fPreviewTable->GetDefaultHeight(25);
+    // FIXED: Use TGCanvas with TGTextEdit for simple table display
+    // TGListView in ROOT 6.26 doesn't have AddColumn/DeleteColumns methods
+    TGCanvas* canvas = new TGCanvas(previewFrame, 600, 300);
+    fPreviewText = new TGTextEdit(canvas, 600, 300);
+    fPreviewText->SetReadOnly(kTRUE);
     
-    previewFrame->AddFrame(fPreviewTable,
+    // Make it look like a table - use monospaced font
+    // Get courier font from font pool
+    const TGFont* courierFont = gClient->GetFont("-*-courier-medium-r-*-*-12-*-*-*-*-*-*-*");
+    if (courierFont) {
+        fPreviewText->SetFont(courierFont->GetFontStruct());
+    }
+    
+    previewFrame->AddFrame(canvas,
         new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 5, 5, 5, 5));
     
     // Statistics
@@ -246,7 +246,7 @@ void CSVPreviewDialog::ParseFile()
 }
 
 // ============================================================================
-// Update preview table based on current settings
+// Update preview - FIXED for ROOT 6.26 (using TGTextEdit instead of TGListView)
 // ============================================================================
 void CSVPreviewDialog::UpdatePreview()
 {
@@ -271,41 +271,78 @@ void CSVPreviewDialog::UpdatePreview()
     fSkipRows = (Int_t)fSkipRowsEntry->GetNumber();
     fUseHeaderRow = fHeaderCheckBox->IsDown();
     
-    // Clear table
-    fPreviewTable->Clear();
+    // Clear preview
+    fPreviewText->Clear();
     
     Int_t rowIdx = 0;
     Int_t maxCols = 0;
+    std::vector<std::vector<std::string>> allRows;
     
+    // Parse and collect rows
     for (size_t i = 0; i < fFileLines.size(); ++i) {
         if ((Int_t)i < fSkipRows) continue;
         
         const std::string& line = fFileLines[i];
         std::vector<std::string> columns = SplitLine(line, delimiter);
         
-        if (columns.size() > maxCols) {
-            maxCols = columns.size();
+        if ((Int_t)columns.size() > maxCols) {
+            maxCols = (Int_t)columns.size();
         }
-        TGLVContainer* container = (TGLVContainer*)fListView->GetContainer();
-        TGLVEntry *item = new TGLVEntry(container, columns[0].c_str(), columns[0].c_str());
-        for (size_t j = 1; j < columns.size(); j++) {
-        // Note: This requires including "TGString.h"
-            item->SetSubnames(columns[1].c_str(), 
-                      columns.size() > 2 ? columns[2].c_str() : "",
-                      columns.size() > 3 ? columns[3].c_str() : ""); 
-            break; // SetSubnames handles multiple at once; loop isn't ideal here
-        }
-        container->AddItem(item);
         
+        allRows.push_back(columns);
         rowIdx++;
-        if (rowIdx >= 100) break; // Limit preview rows
+        if (rowIdx >= 50) break; // Limit preview rows
     }
+    
+    // Build formatted table text
+    std::ostringstream tableText;
+    
+    // Calculate column widths (simple fixed width for now)
+    const int colWidth = 20;
+    
+    // Add rows to text
+    for (size_t r = 0; r < allRows.size(); ++r) {
+        const auto& row = allRows[r];
+        
+        for (size_t c = 0; c < row.size(); ++c) {
+            std::string cell = row[c];
+            
+            // Truncate if too long
+            if (cell.length() > colWidth - 2) {
+                cell = cell.substr(0, colWidth - 5) + "...";
+            }
+            
+            // Pad to column width
+            while (cell.length() < colWidth) {
+                cell += " ";
+            }
+            
+            tableText << cell;
+            
+            if (c < row.size() - 1) {
+                tableText << "| ";
+            }
+        }
+        tableText << "\n";
+        
+        // Add separator after header row
+        if (r == 0 && fUseHeaderRow) {
+            for (int c = 0; c < maxCols; ++c) {
+                tableText << std::string(colWidth, '-');
+                if (c < maxCols - 1) tableText << "+-";
+            }
+            tableText << "\n";
+        }
+    }
+    
+    // Set the text
+    fPreviewText->LoadBuffer(tableText.str().c_str());
     
     // Update labels
     fRowCountLabel->SetText(Form("Rows: %d", rowIdx));
     fColCountLabel->SetText(Form("Columns: %d", maxCols));
     
-    fPreviewTable->Layout();
+    fPreviewText->Layout();
 }
 
 // ============================================================================
@@ -319,10 +356,12 @@ Bool_t CSVPreviewDialog::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                 case kCM_BUTTON:
                     if (parm1 == kOkButton) {
                         // Update settings and close
+                        fModalResult = 1;
                         UpdatePreview();
                         CloseWindow();
                         return kTRUE;
                     } else if (parm1 == kCancelButton) {
+                        fModalResult = 0;
                         CloseWindow();
                         return kTRUE;
                     }
@@ -358,13 +397,14 @@ Bool_t CSVPreviewDialog::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 }
 
 // ============================================================================
-// Modal dialog
+// Modal dialog - FIXED: Returns fModalResult
 // ============================================================================
 Int_t CSVPreviewDialog::DoModal()
 {
+    fModalResult = 0;
     MapWindow();
     gClient->WaitFor(this);
-    return 1; // Always return OK
+    return fModalResult;
 }
 
 // ============================================================================

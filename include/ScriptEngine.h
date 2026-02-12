@@ -13,10 +13,10 @@ private:
     AdvancedPlotGUI* fMainGUI;
     
     // Stream redirection for capturing output
-    std::stringstream* fCoutBuf;
-    std::stringstream* fCerrBuf;
-    std::streambuf* fOldCoutBuf;
-    std::streambuf* fOldCerrBuf;
+    std::ostringstream* fCoutStream;
+    std::ostringstream* fCerrStream;
+    std::streambuf*     fOldCout;
+    std::streambuf*     fOldCerr;
     
     void RedirectStreams();
     void RestoreStreams();
