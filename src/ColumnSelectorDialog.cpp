@@ -1,4 +1,4 @@
-#include "ColumnSelector.h"
+#include "ColumnSelectorDialog.h"
 
 // ROOT dictionary macro
 ClassImp(ColumnSelectorDialog)
@@ -174,6 +174,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
     Resize(GetDefaultSize());
     CenterOnParent();
     Layout();
+    
     // Make sure dropdowns are updated correctly at start
     UpdateColumnVisibility();
 
@@ -223,6 +224,11 @@ void ColumnSelectorDialog::DoCancel() {
     DeleteWindow();
 }
 
+// ============================================================================
+// CRITICAL: UpdateColumnVisibility implementation
+// This function is called by ROOT's signal/slot mechanism when checkboxes
+// are clicked. It MUST be present in the .cpp file.
+// ============================================================================
 void ColumnSelectorDialog::UpdateColumnVisibility()
 {
     // ---- Identify active plot type ----
@@ -290,6 +296,9 @@ void ColumnSelectorDialog::UpdateColumnVisibility()
 
     xErrCombo->SetEnabled(graphE);
     yErrCombo->SetEnabled(graphE);
+    
+    gClient->NeedRedraw(this);
+
 }
 
 

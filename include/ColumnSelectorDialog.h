@@ -1,11 +1,12 @@
-#ifndef COLUMNSELECTOR_H
-#define COLUMNSELECTOR_H
+#ifndef COLUMNSELECTORDIALOG_H
+#define COLUMNSELECTORDIALOG_H
 
 #include <TGFrame.h>
 #include <TGButton.h>
 #include <TGComboBox.h>
 #include <TGNumberEntry.h>
 #include <TGLabel.h>
+#include <RQ_OBJECT.h>
 
 #include "DataReader.h"
 #include "PlotTypes.h"
@@ -16,7 +17,8 @@
 // FIXED: Changed TGRadioButton to TGCheckButton to match implementation
 // ============================================================================
 class ColumnSelectorDialog : public TGTransientFrame {
-
+    //RQ_OBJECT("ColumnSelectorDialog")
+    //ClassDef(ColumnSelectorDialog, 0)
 
 public:
     // Signature matches ColumnSelector.cpp line 7
@@ -26,10 +28,18 @@ public:
                          bool*             result);
     virtual ~ColumnSelectorDialog() {}
 
+    Int_t DoModal() {
+        MapWindow();
+        gClient->WaitFor(this);
+        return (*dialogResult) ? 1 : 0;
+    }
+    virtual void CloseWindow() { UnmapWindow(); }
     Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
+     
+    void UpdateColumnVisibility();
 
     // ClassDef 0 avoids -Winconsistent-missing-override with ROOT 6.26
-    ClassDef(ColumnSelectorDialog, 0)
+    
 
 private:
     // Out-parameters — owned by the caller (ColumnSelector wrapper)
@@ -65,9 +75,6 @@ private:
     void PopulateComboBox(TGComboBox* combo, int startIdx);
     void DoOK();
     void DoCancel();
-    void UpdateColumnVisibility();
-    
-
 };
 
 // ============================================================================
@@ -77,21 +84,25 @@ class ColumnSelector {
 private:
     PlotConfig fConfig;
     bool       fAccepted = false;
+    const TGWindow* fParent;
+    const ColumnData& fData;
 
 public:
-    ColumnSelector(const TGWindow* p, const ColumnData& data)
-    {
-        new ColumnSelectorDialog(p, &data, &fConfig, &fAccepted);
-        // Dialog runs modally; fConfig and fAccepted are filled by DoOK()
+    ColumnSelector(const TGWindow* p, const ColumnData& data) 
+        : fParent(p), fData(data) {}
+
+    // ADD THIS METHOD
+    Int_t DoModal() {
+        // Create the dialog and run it modally
+        ColumnSelectorDialog* diag = new ColumnSelectorDialog(fParent, &fData, &fConfig, &fAccepted);
+        Int_t ret = diag->DoModal();
+        //delete diag; // Clean up the dialog window memory
+        return ret;
     }
 
-    // Returns heap-allocated copy when accepted, nullptr when cancelled.
-    // Caller takes ownership.
-    PlotConfig* GetPlotConfig()
-    {
+    PlotConfig* GetPlotConfig() {
         if (!fAccepted) return nullptr;
         return new PlotConfig(fConfig);
     }
 };
-
 #endif // COLUMNSELECTOR_H

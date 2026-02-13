@@ -14,7 +14,10 @@
 #include <TH1.h>
 
 
+
 // RooFit (optional, only used if Gaussian + histogram)
+#include <RooFitResult.h>
+#include "RooAbsPdf.h"
 #include <RooRealVar.h>
 #include <RooDataHist.h>
 #include <RooGaussian.h>

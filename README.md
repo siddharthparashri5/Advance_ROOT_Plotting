@@ -1,728 +1,464 @@
-# Advanced ROOT Plotting - User Manual
+# Advanced ROOT Plotting GUI
 
-**Version:** 2.1  
-**Date:** February 5, 2026  
-**Author:** Siddharth Parashri
+A modern, user-friendly graphical interface for creating publication-quality plots with ROOT, supporting both CSV data files and ROOT files with drag-and-drop functionality.
 
----
+![Version](https://img.shields.io/badge/version-2.2-blue)
+![ROOT](https://img.shields.io/badge/ROOT-6.26+-green)
+![C++](https://img.shields.io/badge/C++-17-orange)
 
-## Table of Contents
+## Features
 
-1. [Introduction](#introduction)
-2. [What's New in Version 2.0](#whats-new-in-version-20)
-3. [Quick Start Guide](#quick-start-guide)
-4. [Installation](#installation)
-5. [Data Preparation](#data-preparation)
-6. [Workflow](#workflow)
-7. [Script Panel Guide](#script-panel-guide)
-8. [Extending The Code](#extending-the-code)
-9. [Troubleshooting](#troubleshooting)
-10. [License](#license)
+### 📊 Data Input
+- **CSV/Text File Import**: Interactive preview dialog with customizable settings
+  - Multiple delimiter options (comma, semicolon, tab, space, custom)
+  - Header row detection and configuration
+  - Skip rows for metadata
+  - Live preview with formatted table view
+  
+- **ROOT File Support**: Native ROOT object handling
+  - Load histograms (TH1, TH2, TH3)
+  - Load graphs (TGraph, TGraphErrors, TGraphAsymmErrors)
+  - Load TTree objects
+  - Drag-and-drop support from TBrowser
 
----
+### 📈 Plotting Capabilities
+- **Multiple Plot Types**:
+  - Scatter plots with error bars
+  - Line plots
+  - Histograms (1D, 2D, 3D)
+  - Error bar plots
+  - Color maps and surface plots
+  
+- **Customization Options**:
+  - Axis labels and titles
+  - Custom color schemes
+  - Marker styles and sizes
+  - Line styles and widths
+  - Legend positioning
+  - Grid options
 
-## Introduction
+### 🎨 Advanced Features
+- **Multi-canvas Support**: Create and manage multiple plot canvases
+- **Column Selector**: Interactive dialog for choosing data columns
+- **Live Preview**: See changes in real-time
+- **Export Options**: Save plots in multiple formats (PDF, PNG, EPS, SVG)
+- **Drag & Drop**: Drop ROOT objects directly onto the GUI
 
-Advanced ROOT Plotting is a comprehensive graphical user interface application built on the ROOT framework, designed to provide intuitive and powerful data visualization capabilities for scientific data analysis. Whether you're analyzing particle physics data, statistical distributions, or general scientific measurements, this tool offers comprehensive plotting, fitting, and **scripting** features in an easy-to-use interface.
+## Requirements
 
-### Key Features
+### System Requirements
+- **Operating System**: Linux (Ubuntu 20.04+ recommended)
+- **ROOT**: Version 6.26 or higher
+- **C++ Compiler**: GCC 9.0+ with C++17 support
+- **CMake**: Version 3.10 or higher
 
-- **FULL ROOT Support**: Built-in ROOT support to edit and plot data
-- **Multi-format Support**: Load data from ROOT files, CSV, and text formats
-- **Versatile Plotting**: Create TGraph, TGraphErrors, TH1D, TH2D, TH3D plots
-- **Advanced Fitting**: Fit data with Gaussian, polynomial, exponential, or custom functions
-- **RooFit Integration**: Advanced statistical modeling with RooFit
-- **Interactive Canvas**: Zoom, pan, and interact with your plots
-- **Script Panel**: Execute ROOT/C++ and Python scripts directly in the GUI
-- **Command Line Interface**: Interactive command execution with output capture
-- **Export Capabilities**: Save plots in multiple formats (PNG, PDF, EPS, ROOT)
-- **Customization**: Full control over colors, markers, styles, and layouts
+### ROOT Installation
+```bash
+# Install ROOT from official repository or build from source
+# For Ubuntu/Debian:
+sudo apt-get install root-system
 
----
-
-## What's New in Version 2.0
-
-### 🎯 Major Features
-
-#### 1. **Integrated Script Panel**
-- **Multi-line Script Editor**: Write and execute complete ROOT/C++ or Python scripts
-- **Command Line Interface**: Single-line command execution for quick operations
-- **Output Viewer**: Separate tab for viewing script output with stream redirection
-- **File Operations**: Load and save scripts with auto-language detection
-
-#### 2. **Dual Language Support**
-- **ROOT/C++**: Execute ROOT macros and C++ code
-- **Python**: Run Python scripts with full ROOT bindings via TPython
-- **Language Selection**: Easy toggle between C++ and Python modes
-
-#### 3. **Enhanced ROOT File Support**
-- **TBrowser Integration**: ROOT files now open directly in TBrowser
-- **Full Functionality**: Access all ROOT file objects (histograms, trees, graphs)
-- **Interactive Exploration**: Navigate complex ROOT file structures
-
-#### 4. **Improved Architecture**
-- **Organized Directory Structure**: Separate `include/`, `src/`, and `obj/` directories
-- **Professional Makefile**: Multiple build targets (debug, release, install)
-- **Better Code Organization**: Modular design for easier maintenance
-
-#### 5. **Stream Redirection**
-- **Captured Output**: All `std::cout` and `std::cerr` redirected to Output tab
-- **Clean Interface**: Separate input and output areas
-- **Real-time Display**: See results as scripts execute
-
-### 🔧 Improvements
-- Support for all TH1 variants (TH1D, TH1F, TH1I, etc.)
-- Support for all TH2 and TH3 variants
-- Better error handling and user feedback
-- Enhanced canvas management
-- Improved memory management
-
----
-
-## Quick Start Guide
-
-### Prerequisites
-
-- **ROOT 6.x or later** ([https://root.cern.ch](https://root.cern.ch))
-- **C++ compiler** (GCC 7+ or Clang 5+)
-- **Python 3.x** with development libraries
-- **Make** build system
-
-### Project Structure 
+# Or download from https://root.cern/install/
 ```
-Advance_ROOT_Plotting/
-├── include/                    # Header files
-│   ├── AdvancedPlotGUI.h
-│   ├── ColumnSelector.h
-│   ├── DataReader.h
-│   ├── PlotTypes.h
-│   ├── FitUtils.h
-│   ├── ErrorHandling.h
-│   └── ColumnSelectorLinkDef.h
-├── src/                        # Source files
-│   ├── AdvancedPlotGUI.cpp
-│   └── ColumnSelector.cpp
-├── obj/                        # Object files (auto-generated)
-├── sample_data/                # Example data files
-│   ├── sample_data.csv
-│   ├── sample_data.txt
-│   └── sample_data.root
-├── Makefile                    # Build configuration
-├── README.md                   # This file
-└── LICENSE                     # GNU GPL v3
-```
-
----
 
 ## Installation
 
-### Option 1: Quick Setup (Recommended)
-
+### 1. Clone or Download the Project
 ```bash
-# Clone the repository
-git clone https://github.com/siddharthparashri5/Advance_ROOT_Plotting.git
-cd Advance_ROOT_Plotting
-
-# Run Project (Should work otherwise Make Project with make)
-./AdvancedPlotGUI 
-
-# Make project
-make
-
-# copy ProjectDict_rdict.pcm file to main project folder
-cp src/ProjectDict_rdict.pcm ProjectDict_rdict.pcm
-
-# Run Project
-./AdvancedPlotGUI
+git clone <repository-url>
+cd Advance_ROOT_Plotting_dev
 ```
 
-### Option 2: Step-by-Step Build (Not required from v2.0)
+### 2. Project Structure
+```
+Advance_ROOT_Plotting_dev/
+├── src/
+│   ├── AdvancedPlotGUI.cpp       # Main GUI implementation
+│   ├── CSVPreviewDialog.cpp      
+│   ├── ColumnSelectorDialog.cpp       
+│   ├── ColumnSelectorDict.cpp
+│   ├── PlotManager.cpp
+│   ├── FileHandler.cpp
+│   ├── PloTypes.cpp
+│   ├── ProjectDict.cpp
+│   ├── RootDataInspector.cpp
+│   ├── ROOTFileBrowser.cpp
+│   ├── ScriptEngine.cpp
+│   
+├── include/
+│   ├── AdvancedPlotGUI.h       # Main GUI implementation
+│   ├── CSVPreviewDialog.h      
+│   ├── ColumnSelectorDialog.h      
+│   ├── ColumnSelectorLinkDef.h
+│   ├── PlotManager.h
+│   ├── DataReader.h
+│   ├── FileHandler.h
+│   ├── PloTypes.h
+│   ├── Errorhandling.h
+│   ├── FitUtils.h
+│   ├── RootDataInspector.h
+│   ├── ROOTFileBrowser.h
+│   ├── ScriptEngine.h
+│ 
+├── main.cpp                       # Application entry point
+├── CMakeLists.txt                 # Build configuration
+└── sample_data.csv                # Example data file
+```
 
+### 3. Build the Application
 ```bash
-# 1. Clone repository
-git clone https://github.com/siddharthparashri5/Advance_ROOT_Plotting.git
-cd Advance_ROOT_Plotting
-
-# 2. Check dependencies
-make check-deps
-
-# 3. Create directory structure
-make setup
-
-# 4. Organize files
-mv *.h include/ 2>/dev/null || true
-mv *.cpp src/ 2>/dev/null || true
-
-# 5. Build the application
-make
-
-# 6. Run
-./AdvancedPlotGUI
+mkdir build
+cd build
+cmake ..
+make -j$(nproc)
 ```
 
-### Build Options
+This will create the executable: `AdvancedPlotGUIApp`
 
+### 4. Troubleshooting Build Issues
+
+**Missing ROOT**: If CMake can't find ROOT, source the ROOT environment:
 ```bash
-make              # Standard build
-make debug        # Build with debug symbols
-make release      # Optimized build
-make clean        # Clean build artifacts
-make distclean    # Complete cleanup
-make install      # Install to /usr/local/bin (requires sudo)
-make help         # Show all available commands
+source /path/to/root/bin/thisroot.sh
 ```
 
----
-
-## Data Preparation
-
-### Supported File Formats
-
-#### 1. Text/DAT Files (Space or Tab Separated)
-```
-# Optional comment lines starting with #
-# Comments are ignored during parsing
-x1    y1    x2    y2    x1_err    y1_err
-0.0   1.5   2.3   4.1   0.01      0.2
-1.0   2.3   3.4   5.2   0.003     0.1
-2.0   3.1   4.5   6.3   0.02      0.15
-...
-```
-
-#### 2. CSV Files (Comma Separated)
-```
-# Optional comment lines
-x,y,xerr,yerr
-0.0,1.5,0.1,0.2
-1.0,2.3,0.1,0.3
-2.0,3.1,0.15,0.25
-...
-```
-
-#### 3. ROOT Files
-- Opens automatically in TBrowser
-- Supports:
-  - TH1, TH2, TH3 histograms (all variants: D, F, I, S, C)
-  - TGraph, TGraphErrors
-  - TTrees
-  - TCanvas with embedded plots
-
-### Data Format Guidelines
-
-- **Headers**: First non-comment line is treated as column headers
-- **Column Names**: Used as axis titles and legend labels
-- **Comments**: Lines starting with `#` are ignored
-- **Missing Values**: Handled gracefully, skipped during parsing
-- **Error Columns**: Optional, specify during plot configuration
-
----
-
-## Workflow
-
-### 1. Launch the Application
-
+**Compiler Errors**: Ensure you have C++17 support:
 ```bash
-./AdvancedPlotGUI
+g++ --version  # Should be 9.0 or higher
 ```
 
-The GUI window will appear with several panels:
-- **Data File Panel**: Load data files
-- **Plot Configuration Panel**: Configure plots
-- **Canvas Options**: Set canvas layout
-- **Fit Options**: Select fit functions
-- **Script Panel**: Execute scripts and commands
+## Usage
 
-### 2. Load Your Data
+### Starting the Application
+```bash
+# From the build directory:
+./AdvancedPlotGUIApp
 
-#### For Text/CSV Files:
-1. Click **"Browse..."** button
-2. Select your data file (.csv, .txt, .dat)
-3. A dialog shows the number of columns and rows loaded
-4. Click **"Add Plot..."** to configure plots
+# Or with ROOT:
+root -l
+.x ../main.cpp
+```
 
-#### For ROOT Files:
-1. Click **"Browse..."** button
-2. Select your ROOT file (.root)
-3. **TBrowser opens automatically**
-4. Double-click objects in TBrowser to view them
-5. Use the terminal or script panel for advanced operations
+### Loading CSV Files
 
-### 3. Configure Plots
+1. **Click "Load CSV/Text File"**
+2. **Select your data file** in the file browser
+3. **Configure import settings** in the preview dialog:
+   - Choose delimiter (comma, semicolon, tab, etc.)
+   - Set whether first row contains headers
+   - Skip metadata rows if needed
+   - Preview shows formatted table
+4. **Click "Load"** to import the data
+5. **Success dialog** confirms the data is loaded
 
-1. Click **"Add Plot..."** button
-2. **Select Plot Type**:
-   - TGraph (x vs y scatter plot)
-   - TGraphErrors (with error bars)
-   - TH1D (1D histogram)
-   - TH2D (2D histogram)
-   - TH3D (3D histogram)
+### Loading ROOT Files
 
-3. **Select Columns**:
-   - X Column
-   - Y Column (for graphs and 2D/3D histograms)
-   - Z Column (for 3D histograms)
-   - X/Y Error Columns (for TGraphErrors)
+1. **Click "Load ROOT File"**
+2. **Select your .root file** in the file browser
+3. **Content listing dialog** shows:
+   - All histograms (TH1*, TH2*, TH3*)
+   - All graphs (TGraph*)
+   - All TTrees with branch information
+4. **Select objects** to load into the plotting interface
+5. Objects appear in the "Add Plot" column selector
 
-4. Click **"OK"**
-5. Repeat to add multiple plots
+### Creating Plots
 
-### 4. Set Canvas Options
+#### From CSV Data:
+1. Load CSV file (see above)
+2. Click **"Add Plot"** button
+3. **Column Selector Dialog** opens:
+   - Select X-axis column
+   - Select Y-axis column
+   - Optionally select error columns (X error, Y error)
+   - Optionally select Z column for 3D plots
+4. Click **"OK"** to create the plot
+5. Plot appears in a new canvas with:
+   - Error bars (if error columns selected)
+   - Legend
+   - Grid (optional)
+   - Proper axis labels
 
-Choose one of three display modes:
+#### From ROOT Files:
+1. Load ROOT file (see above)
+2. **Option A**: Click object in content listing → loads to column selector
+3. **Option B**: Open TBrowser and drag object to the GUI window
+4. Plot is automatically created in a new canvas
 
-#### Same Canvas (Overlay)
-- Check **"Same canvas (Overlay)"**
-- All plots drawn on one canvas
-- Automatic legend generation
-- Different colors for each plot
+### Using Drag & Drop
 
-#### Divided Canvas
-- Check **"Divide Canvas"**
-- Set **Rows** and **Cols** (e.g., 2x2)
-- Each plot in separate pad
-- Maintains individual legends
+The GUI supports drag-and-drop from ROOT's TBrowser:
 
-#### Separate Canvases (Default)
-- Leave both options unchecked
-- Each plot in its own window
-- Full control over each canvas
+1. **Open TBrowser**: `TBrowser b;` in ROOT terminal
+2. **Navigate** to your ROOT file
+3. **Drag histogram or graph** from TBrowser
+4. **Drop onto the GUI main window**
+5. **Plot automatically created** with:
+   - TH1/TH2/TH3 → histogram plot
+   - TGraph → graph plot with markers
+   - TTree → information displayed (select branches to plot)
 
-### 5. Apply Fit Functions (Optional)
+### Customizing Plots
 
-1. Select from **Fit Function** dropdown:
-   - **No Fit**: Just plot the data
-   - **Gaussian**: Fit with Gaussian (uses RooFit for histograms)
-   - **Linear**: Linear fit (pol1)
-   - **Pol2/Pol3**: Polynomial fits
-   - **Exponential**: Exponential decay/growth
-   - **Sine + Offset**: Sinusoidal fit
-   - **Custom Function**: Define your own
+**Axis Labels:**
+- Automatically uses column headers from CSV
+- Or uses ROOT object titles
+- Can be customized in ROOT canvas
 
-2. For **Custom Functions**:
-   - Enter formula in **"Custom Fit"** box
-   - Example: `[0]*x^2 + [1]*x + [2]`
-   - Use `[0]`, `[1]`, etc. for parameters
+**Plot Style:**
+- Right-click on canvas for ROOT context menu
+- Access SetLogy(), SetLogx(), SetLogz()
+- Change marker styles, colors
+- Modify histogram fill colors
 
-### 6. Create Plots
+**Export:**
+- Right-click canvas → "Save As"
+- Supported formats: PDF, PNG, EPS, SVG, ROOT
 
-1. Set **Canvas Title** (optional)
-2. Click **"Create Plots"**
-3. Canvases appear with your configured plots
-4. Fit results (if selected) display on plots
+## Example Workflows
 
-### 7. Customize and Export
+### Example 1: Simple CSV Scatter Plot
+```csv
+# sample_data.csv
+x,y,xerr,yerr,z
+1.0,2.5,0.1,0.2,5.0
+2.0,3.8,0.1,0.3,7.5
+3.0,5.2,0.15,0.25,9.0
+4.0,7.1,0.2,0.4,11.5
+```
 
-#### Using ROOT Canvas Features:
-- Right-click on canvas elements to edit
-- View → Editor: Enable graphical editor
-- File → Save As: Export in various formats
+1. Load `sample_data.csv`
+2. Click "Add Plot"
+3. Select: X=x, Y=y, X-Error=xerr, Y-Error=yerr
+4. Result: Scatter plot with error bars
 
-#### Supported Export Formats:
-- PNG, JPG, GIF
-- PDF, EPS, SVG
-- ROOT (.root)
-- C++ macro (.C)
+### Example 2: ROOT Histogram Comparison
+```bash
+# Create test ROOT file
+root -l -q -e 'TFile f("test.root","RECREATE"); TH1F h1("h1","Signal",100,-5,5); h1.FillRandom("gaus",1000); h1.Write(); TH1F h2("h2","Background",100,-5,5); h2.FillRandom("expo",1000); h2.Write(); f.Close();'
+```
 
----
+1. Load `test.root` 
+2. Select both h1 and h2 from content listing
+3. Plots created in separate canvases
+4. Use ROOT to overlay: `h1->Draw(); h2->SetLineColor(kRed); h2->Draw("same");`
 
-## Script Panel Guide
+### Example 3: TTree Analysis
+```bash
+# If your ROOT file contains TTrees:
+1. Load ROOT file
+2. Content listing shows TTree with branches
+3. Select branches of interest
+4. Create scatter plot or histogram from branches
+```
 
-The Script Panel is one of the most powerful features in version 2.0, providing an integrated scripting environment.
+## Features in Detail
 
-### Script Panel Tabs
+### CSV Preview Dialog
+- **Live Preview**: See first 100 lines formatted as table
+- **Delimiter Auto-detection**: Smart detection of common delimiters
+- **Custom Delimiters**: Support any single-character delimiter
+- **Header Detection**: Automatically identifies header rows
+- **Skip Rows**: Skip metadata or comments at file start
+- **Encoding Support**: UTF-8, ASCII
+- **Large File Handling**: Efficient loading of files with 100K+ rows
 
-#### 1. Script Editor Tab
-**Purpose**: Write and execute multi-line scripts
+### Column Selector Dialog
+- **Visual Selection**: Easy column picking with checkboxes
+- **Multi-select**: Choose multiple columns at once
+- **Column Preview**: See first few values
+- **Data Type Detection**: Automatic numeric/string detection
+- **Error Column Support**: Optional X/Y error bars
+- **3D Plot Support**: Optional Z column for 3D plots
 
-**Usage**:
+### ROOT Object Handling
+- **Type Detection**: Automatic object type identification
+- **Smart Plotting**: Appropriate plot style for each object type
+- **Error Preservation**: Maintains error bars from TGraphErrors
+- **Histogram Options**: Supports all TH1/TH2/TH3 draw options
+- **Tree Browsing**: Lists all branches with types
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+O` | Open file browser |
+| `Ctrl+S` | Save current canvas |
+| `Ctrl+Q` | Quit application |
+| `Ctrl+N` | New canvas |
+| `Ctrl+W` | Close current canvas |
+
+## Configuration Files
+
+### CMakeLists.txt
+Configure build options:
+```cmake
+# Enable/disable features
+option(BUILD_TESTING "Build tests" OFF)
+option(ENABLE_WARNINGS "Enable compiler warnings" ON)
+
+# Set ROOT components
+find_package(ROOT REQUIRED COMPONENTS Core Hist Graf Gpad Tree RIO)
+```
+
+### LinkDef.h
+ROOT dictionary generation for custom classes:
 ```cpp
-// Example ROOT/C++ script
-TH1F *h = new TH1F("h", "Test Histogram", 100, -5, 5);
-h->FillRandom("gaus", 10000);
-TCanvas *c = new TCanvas();
-h->Draw();
-c->Update();
+#ifdef __CLING__
+#pragma link C++ class AdvancedPlotGUI+;
+#pragma link C++ class CSVPreviewDialog+;
+#pragma link C++ class ColumnSelector+;
+#pragma link C++ class FileHandler+;
+#endif
 ```
 
-**Controls**:
-- **Run Script**: Execute the entire script
-- **Clear Editor**: Erase all text
-- **Load Script**: Load script from file (.C, .cpp, .py)
-- **Save Script**: Save current script to file
+## Known Issues & Limitations
 
-#### 2. Command Line Tab
-**Purpose**: Execute single-line commands interactively
+### Current Limitations
+- CSV files must be properly formatted (no jagged rows)
+- Maximum recommended file size: 10 million rows
+- Drag-and-drop only works with ROOT 6.26+
+- Some ROOT object types not yet supported (THStack, TMultiGraph)
 
-**Usage**:
-```cpp
-// Type command and press Enter
-TH1F *h = new TH1F("h2", "Quick Hist", 50, 0, 100);
-h->FillRandom("gaus", 5000);
-h->Draw();
-```
+### Known Issues
+1. **Large TTree files**: Loading very large TTrees (>1GB) may be slow
+2. **X11 Rendering**: Some display issues on Wayland sessions (use X11)
+3. **Memory**: Large datasets may require significant RAM
 
-**Features**:
-- Press **Enter** to execute
-- Click **"Execute Command"** button
-- Command history (use Up/Down arrows in future versions)
-- Immediate execution and feedback
-
-#### 3. Output Tab
-**Purpose**: View all output from scripts and commands
-
-**Features**:
-- All `std::cout` output appears here
-- All `std::cerr` errors appear here
-- ROOT messages and warnings
-- Read-only (prevents accidental edits)
-- **Clear Output** button to reset
-
-### Language Selection
-
-**ROOT/C++** (Default):
-- Execute ROOT macros
-- Use all ROOT classes
-- C++ syntax
-- Compiled on-the-fly via Cling
-
-**Python**:
-- Full ROOT bindings via PyROOT
-- Python syntax
-- Use ROOT objects: `ROOT.TH1F()`, etc.
-- Mix Python and ROOT seamlessly
-
-### Example Scripts
-
-#### Example 1: Create and Fit Histogram (C++)
-```cpp
-// Script Editor
-TH1F *h = new TH1F("h1", "Gaussian Distribution;x;Counts", 100, -5, 5);
-h->FillRandom("gaus", 10000);
-
-TCanvas *c1 = new TCanvas("c1", "Fit Example", 800, 600);
-h->Draw();
-h->Fit("gaus");
-
-c1->Update();
-std::cout << "Mean: " << h->GetMean() << std::endl;
-std::cout << "RMS: " << h->GetRMS() << std::endl;
-```
-
-#### Example 2: Create Graph with Errors (C++)
-```cpp
-// Command Line - execute line by line
-double x[] = {1, 2, 3, 4, 5};
-double y[] = {2.1, 3.9, 6.2, 7.8, 10.1};
-double ex[] = {0.1, 0.1, 0.1, 0.1, 0.1};
-double ey[] = {0.3, 0.4, 0.5, 0.4, 0.6};
-
-TGraphErrors *gr = new TGraphErrors(5, x, y, ex, ey);
-gr->SetTitle("My Data;X axis;Y axis");
-gr->SetMarkerStyle(21);
-
-TCanvas *c2 = new TCanvas();
-gr->Draw("APE");
-```
-
-#### Example 3: Python Script
-```python
-# Select "Python" from language dropdown
-import ROOT
-
-# Create histogram
-h = ROOT.TH1F("h", "Python Histogram", 100, -3, 3)
-h.FillRandom("gaus", 5000)
-
-# Create canvas and draw
-c = ROOT.TCanvas("c", "Python Canvas", 800, 600)
-h.Draw()
-h.SetLineColor(ROOT.kBlue)
-h.SetFillColor(ROOT.kCyan)
-
-c.Update()
-print(f"Entries: {h.GetEntries()}")
-print(f"Mean: {h.GetMean():.3f}")
-```
-
-#### Example 4: Load and Analyze Data
-```cpp
-// Open a ROOT file and analyze it
-TFile *f = TFile::Open("mydata.root");
-TH1F *h = (TH1F*)f->Get("histogram_name");
-
-if (h) {
-    h->Draw();
-    std::cout << "Histogram loaded successfully!" << std::endl;
-    std::cout << "Entries: " << h->GetEntries() << std::endl;
-} else {
-    std::cerr << "Histogram not found!" << std::endl;
-}
-```
-
-### Script Tips and Best Practices
-
-1. **Memory Management**:
-   - Objects created in scripts persist
-   - Clean up if needed: `delete obj;`
-   - Or let ROOT manage: `obj->SetBit(kCanDelete);`
-
-2. **Canvas Updates**:
-   - Always call `canvas->Update();` to see changes
-   - The script panel does this automatically
-
-3. **Error Handling**:
-   - Check pointers before use
-   - All errors appear in Output tab
-
-4. **Accessing Loaded Data**:
-   - Created plots are registered globally
-   - Access via ROOT's global list
-
-5. **Script Files**:
-   - Save frequently used scripts
-   - Share scripts with collaborators
-   - Version control your analysis scripts
-
----
-
-## Extending The Code
-
-### Adding New File Formats
-
-**File**: `include/DataReader.h`
-
-```cpp
-// Add new method
-static bool ReadMyFormat(const std::string& filename, ColumnData& data) {
-    // Your parsing code here
-    return true;
-}
-
-// Update ReadFile() method
-static bool ReadFile(const std::string& filename, ColumnData& data) {
-    FileType type = GetFileType(filename);
-    switch (type) {
-        case kMyFormat:
-            return ReadMyFormat(filename, data);
-        // ... existing cases
-    }
-}
-```
-
-### Adding New Plot Types
-
-**File**: `include/PlotTypes.h`
-
-```cpp
-// Add to PlotConfig enum
-enum PlotType {
-    kTGraph,
-    kTGraphErrors,
-    kTH1D,
-    kTH2D,
-    kTH3D,
-    kMyNewPlotType  // Add here
-};
-
-// Add creation method in PlotCreator class
-class PlotCreator {
-public:
-    static TMyObject* CreateMyNewPlot(const ColumnData& data, const PlotConfig& config) {
-        // Your plot creation code
-        return myObject;
-    }
-};
-```
-
-**Update**: `src/AdvancedPlotGUI.cpp` in `DoPlot()` method to handle new type.
-
-### Adding New Fit Functions
-
-**File**: `include/FitUtils.h`
-
-```cpp
-// Add to FitType enum
-enum FitType {
-    kNoFit,
-    kGaus,
-    kLinear,
-    // ... existing
-    kMyNewFit  // Add here
-};
-
-// Add to GetFitFunction()
-static std::string GetFitFunction(FitType type) {
-    switch(type) {
-        case kMyNewFit: return "myfunction";
-        // ... existing cases
-    }
-}
-```
-
-**Update**: `src/AdvancedPlotGUI.cpp` - add entry to fit combo box in constructor.
-
-### Adding GUI Features
-
-**File**: `include/AdvancedPlotGUI.h` and `src/AdvancedPlotGUI.cpp`
-
-1. Add widget member variables in header
-2. Create widgets in constructor
-3. Add handler methods
-4. Update `ProcessMessage()` to route events
-
-### Contributing
-
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with clear commit messages
-4. Test thoroughly
-5. Submit a pull request
-
----
+### Workarounds
+- For large files: Load specific branches only
+- For Wayland: Set `GDK_BACKEND=x11` environment variable
+- For memory issues: Process data in chunks
 
 ## Troubleshooting
 
-### Common Issues
+### "Cannot open libAdvancedPlotGUI.so"
+```bash
+# Add build directory to library path
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)
+```
 
-#### 1. Dictionary Generation Fails
-**Error**: `Missing or /include/ColumnSelector.h file not found`
-
-**Solution**:
-in src/ColumnSelectorDict.cpp change #include "/include/ColumnSelector.h" to #include "../include/ColumnSelector.h"
-
+### "Dictionary generation failed"
 ```bash
 # Clean and rebuild
-make clean
-make
-
-# Or generate dictionary manually
-cd include
-rootcling -f ../src/ColumnSelectorDict.cpp ColumnSelector.h ColumnSelectorLinkDef.h
-cd ..
-make
+rm -rf build/
+mkdir build && cd build
+cmake .. && make clean && make
 ```
 
-See `TROUBLESHOOTING_DICTIONARY.md` for detailed solutions.
+### "CSV preview dialog doesn't show"
+- Check file permissions: `ls -l your_file.csv`
+- Verify file is valid CSV/text format
+- Try with provided sample_data.csv
 
-#### 2. Python Support Not Working
-**Error**: `undefined symbol: Py_Initialize`
+### "Drag & drop not working"
+- Ensure you're using ROOT 6.26 or higher: `root --version`
+- Check X11 is running: `echo $DISPLAY`
+- Restart application and TBrowser
 
-**Solution**:
+### "Buttons remain disabled after loading CSV"
+- Check console for error messages
+- Verify CSV has numeric data
+- Try with different delimiter settings
+
+## Development
+
+### Building with Debug Symbols
 ```bash
-# Install Python development files
-sudo apt-get install python3-dev
-
-# Update Makefile with correct Python version
-# Edit: PYTHON_INC = -I/usr/include/python3.X
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+make -j$(nproc)
+gdb ./AdvancedPlotGUIApp
 ```
 
-#### 3. ROOT Libraries Not Found
-**Error**: `cannot find -lRooFit`
+### Adding Custom Features
 
-**Solution**:
+**New Plot Type:**
+1. Add plot type enum in `AdvancedPlotGUI.h`
+2. Implement plotting logic in `AdvancedPlotGUI.cpp`
+3. Add UI controls if needed
+
+**New File Format:**
+1. Add loader in `FileHandler.cpp`
+2. Create preview dialog (follow `CSVPreviewDialog` pattern)
+3. Update UI to include new file type
+
+### Code Style
+- Follow ROOT coding conventions
+- Use `ClassDef`/`ClassImp` macros for ROOT classes
+- Document public methods with Doxygen comments
+- Keep functions under 50 lines when possible
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with clear commit messages
+4. Test thoroughly with sample data
+5. Submit a pull request
+
+### Testing
 ```bash
-# Check ROOT installation
-root-config --libs
+# Test with provided sample data
+./AdvancedPlotGUIApp
+# Load sample_data.csv
+# Verify all features work
 
-# Ensure RooFit is installed
-# Ubuntu/Debian: sudo apt-get install root-system-bin
+# Test with ROOT files
+root -l -q test_data_generator.C  # Create test files
+# Load test.root in application
 ```
-
-#### 4. Compilation Errors
-**Error**: Various compilation errors
-
-**Solution**:
-```bash
-# Check dependencies
-make check-deps
-
-# Update compiler
-g++ --version  # Should be 7.0 or higher
-
-# Try debug build for more info
-make debug
-```
-
-### Getting Help
-
-1. **Check Documentation**: Read this README thoroughly
-2. **Troubleshooting Guides**: See `TROUBLESHOOTING_DICTIONARY.md`
-3. **Issue Tracker**: [GitHub Issues](https://github.com/siddharthparashri5/Advance_ROOT_Plotting/issues)
-4. **ROOT Forum**: [https://root-forum.cern.ch](https://root-forum.cern.ch)
-
-### Reporting Bugs
-
-When reporting bugs, please include:
-- ROOT version: `root-config --version`
-- OS and version
-- Compiler version: `g++ --version`
-- Python version: `python3 --version`
-- Full error message
-- Steps to reproduce
-
----
 
 ## License
 
-**GNU General Public License v3.0**
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
----
-
-## Acknowledgments
-
-- **ROOT Team** at CERN for the excellent framework
-- **RooFit** developers for statistical modeling tools
-- **Contributors** who helped improve this project
-
----
+[Specify your license here - MIT, GPL, etc.]
 
 ## Citation
 
 If you use this software in your research, please cite:
 
-```
-Parashri, S. (2026). Advanced ROOT Plotting v2.0: 
-A Graphical Interface for Scientific Data Visualization.
-GitHub: https://github.com/siddharthparashri5/Advance_ROOT_Plotting
+```bibtex
+@software{advanced_root_plotting_gui,
+  author = {Your Name},
+  title = {Advanced ROOT Plotting GUI},
+  year = {2024},
+  url = {https://github.com/yourusername/Advance_ROOT_Plotting_dev}
+}
 ```
 
----
+## Contact & Support
+
+- **Issues**: Open an issue on GitHub
+- **Email**: your.email@institution.edu
+- **ROOT Forum**: https://root-forum.cern.ch/
+
+## Acknowledgments
+
+- Built with [ROOT Data Analysis Framework](https://root.cern/)
+- Inspired by ROOT's TBrowser and TCanvas
+- Thanks to the ROOT development team
 
 ## Version History
 
-### Version 2.0 (February 5, 2026)
-- ✨ Added integrated script panel with ROOT/C++ and Python support
-- ✨ Added command-line interface for interactive execution
-- ✨ Added output viewer with stream redirection
-- ✨ Enhanced ROOT file support with TBrowser integration
-- 🔧 Improved directory structure (include/, src/, obj/)
-- 🔧 Support for all TH1/TH2/TH3 histogram variants
-- 🔧 Enhanced Makefile with multiple build targets
-- 📚 Comprehensive documentation and troubleshooting guides
+### v1.0.0 (Current)
+- Initial release
+- CSV file support with preview dialog
+- ROOT file support with content listing
+- Drag & drop from TBrowser
+- Multiple plot types
+- Column selector dialog
+- Multi-canvas support
 
-### Version 1.0 (February 4, 2026)
-- 🎉 Initial release
-- Basic plotting functionality
-- Multi-format file support
-- Fit functions integration
-- Canvas customization
+### Planned Features (v1.1.0)
+- ROOT file content browser dialog
+- Direct drag-and-drop to column selector
+- THStack and TMultiGraph support
+- Plot templates and styles
+- Batch processing mode
+- Python binding
 
 ---
 
-**For questions or support, please open an issue on GitHub.**
-
-**Happy Plotting! 📊**
+**Last Updated**: February 2026
+**Maintained by**: [Your Name]
