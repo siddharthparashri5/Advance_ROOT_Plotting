@@ -47,6 +47,42 @@ RootEntrySelector::RootEntrySelector(const TGWindow* p, const char* filename)
     Resize(GetDefaultSize());
     CenterOnParent();
     MapWindow();
+
+    std::cout << "\n" << std::endl;
+    std::cout << "╔══════════════════════════════════════════════════════════╗" << std::endl;
+    std::cout << "║       ROOT Analysis - Usage Guide                        ║" << std::endl;
+    std::cout << "╠══════════════════════════════════════════════════════════╣" << std::endl;
+    std::cout << "║ WORKFLOW:                                                ║" << std::endl;
+    std::cout << "║                                                          ║" << std::endl;
+    std::cout << "║ 1. Select an object (histogram or TTree)                 ║" << std::endl;
+    std::cout << "║                                                          ║" << std::endl;
+    std::cout << "║ 2. Configure selection:                                  ║" << std::endl;
+    std::cout << "║    - Entry range (start/end)                             ║" << std::endl;
+    std::cout << "║    - Cut formula (e.g., 'Energy > 80 && Eta < 2')        ║" << std::endl;
+    std::cout << "║    - Draw options (COLZ, PE, HIST, etc.)                 ║" << std::endl;
+    std::cout << "║                                                          ║" << std::endl;
+    std::cout << "║ 3. Click 'Plot Current Only' to plot immediately         ║" << std::endl;
+    std::cout << "║    OR                                                    ║" << std::endl;
+    std::cout << "║    Click 'Add to Chain' to save this selection           ║" << std::endl;
+    std::cout << "║                                                          ║" << std::endl;
+    std::cout << "║ 4. Build a chain of selections:                          ║" << std::endl;
+    std::cout << "║    - Each step adds filters cumulatively                 ║" << std::endl;
+    std::cout << "║    - Example chain:                                      ║" << std::endl;
+    std::cout << "║      Step 1: Energy > 50                                 ║" << std::endl;
+    std::cout << "║      Step 2: Pt > 30 (applied WITH step 1)               ║" << std::endl;
+    std::cout << "║      Step 3: abs(Eta) < 2.5 (applied WITH 1 & 2)         ║" << std::endl;
+    std::cout << "║                                                          ║" << std::endl;
+    std::cout << "║ 5. Click 'Plot with Chain Cuts' to apply ALL filters     ║" << std::endl;
+    std::cout << "║                                                          ║" << std::endl;
+    std::cout << "║ 6. Save/Load chains for reuse                            ║" << std::endl;
+    std::cout << "╠══════════════════════════════════════════════════════════╣" << std::endl;
+    std::cout << "║ EXAMPLE CUTS:                                            ║" << std::endl;
+    std::cout << "║   Energy > 100                                           ║" << std::endl;
+    std::cout << "║   Pt > 30 && abs(Eta) < 2.5                              ║" << std::endl;
+    std::cout << "║   Charge == 1                                            ║" << std::endl;
+    std::cout << "║   Energy > 80 && Phi > 0                                 ║" << std::endl;
+    std::cout << "╚══════════════════════════════════════════════════════════╝" << std::endl;
+    std::cout << "\n" << std::endl;
 }
 
 // ============================================================================

@@ -61,7 +61,7 @@ AdvancedPlotGUI::AdvancedPlotGUI(const TGWindow* p, UInt_t w, UInt_t h)
     BuildScriptPanel();
     
     // Finalize GUI
-    SetWindowName("Advanced ROOT Plotting Tool - Drag ROOT objects here!");
+    SetWindowName("Advance ROOT Plotting Tool");
     MapSubwindows();
     Resize(GetDefaultSize());
     MapWindow();
@@ -86,6 +86,8 @@ AdvancedPlotGUI::AdvancedPlotGUI(const TGWindow* p, UInt_t w, UInt_t h)
     printf("║  • User can also use the Scripts / Commands directly       ║\n");
     printf("╚════════════════════════════════════════════════════════════╝\n");
     printf("\n");
+
+
 }
 
 // ============================================================================
@@ -116,9 +118,9 @@ void AdvancedPlotGUI::BuildFileSection()
     fBrowseButton->Associate(this);
     fileFrame->AddFrame(fBrowseButton, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
 
-    fEntrySelectorButton = new TGTextButton(fileFrame,"Advanced Entry Selector...", kEntrySelector);
-    fEntrySelectorButton->Associate(this);fEntrySelectorButton->SetToolTipText(
-        "Open advanced entry/cut selector for ROOT files");
+    fEntrySelectorButton = new TGTextButton(fileFrame,"ROOT Analysis...", kEntrySelector);
+    fEntrySelectorButton->Associate(this);
+    fEntrySelectorButton->SetToolTipText("Open advanced entry/cut selector for ROOT files");
     fileFrame->AddFrame(fEntrySelectorButton,new TGLayoutHints(kLHintsLeft, 5, 5, 2, 2));
 
     fileGroup->AddFrame(fileFrame, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
@@ -513,7 +515,7 @@ Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                     else if (parm1 == kClearOutputButton) {
                         fScriptEngine->ClearOutput();
                     }
-                    else if (parm1 == kEntrySelector) {
+                    else if (parm1 == kEntrySelector) {  
                         std::string path = fFileHandler->Browse();
                         if (!path.empty()) {
                             fFileHandler->OpenEntrySelector(path.c_str());
