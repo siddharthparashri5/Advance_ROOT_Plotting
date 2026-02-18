@@ -8,6 +8,34 @@ A modern, user-friendly graphical interface for creating publication-quality plo
 
 ## Features
 
+### 🎨 NEW: Advanced TTree Entry Selector 
+- **Entry Selection and filtering/Plotting: Select specific event ranges from TTrees**
+  - Choose start and end entry numbers
+  - Apply to any TTree branch
+  - Bin range selection for histograms
+  
+- **Cut Formulas: Apply physics cuts using ROOT’s TCut syntax **
+  - Complex boolean expressions: Energy > 100 && Pt > 30
+  - Support for mathematical functions
+  - Entry$ variable for entry-based cuts
+
+- **Selection Chains: Build cumulative filter pipelines **
+  - Sequential application of multiple cuts
+  - Each step builds on previous selections
+  - Visual chain representation in GUI
+  - Real-time entry count feedback
+
+- **Save/Load Chains: Persistent selection workflows **
+  - Save chains as .selchain files (plain text, version-control friendly)
+  - Load and reuse selection chains
+  - Share analysis workflows with collaborators
+
+- **Plot Options: **
+  - Plot current selection only (single step)
+  - Plot with entire chain (cumulative cuts)
+  - Automatic histogram creation from filtered TTree data
+  - Full control over draw options 
+
 ### 📊 Data Input
 - **CSV/Text File Import**: Interactive preview dialog with customizable settings
   - Multiple delimiter options (comma, semicolon, tab, space, custom)
@@ -77,6 +105,7 @@ Advance_ROOT_Plotting_dev/
 │   ├── CSVPreviewDialog.cpp      
 │   ├── ColumnSelectorDialog.cpp       
 │   ├── ColumnSelectorDict.cpp
+│   ├── RootEntrySelector.cpp
 │   ├── PlotManager.cpp
 │   ├── FileHandler.cpp
 │   ├── PloTypes.cpp
@@ -90,6 +119,7 @@ Advance_ROOT_Plotting_dev/
 │   ├── CSVPreviewDialog.h      
 │   ├── ColumnSelectorDialog.h      
 │   ├── ColumnSelectorLinkDef.h
+│   ├── RootEntrySelector.h
 │   ├── PlotManager.h
 │   ├── DataReader.h
 │   ├── FileHandler.h
@@ -102,6 +132,8 @@ Advance_ROOT_Plotting_dev/
 │ 
 ├── main.cpp                       # Application entry point
 ├── CMakeLists.txt                 # Build configuration
+├── test_entry_selector.cpp        # Test program
+├── sample_data.txt                # Example data file
 └── sample_data.csv                # Example data file
 ```
 
