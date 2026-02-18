@@ -513,7 +513,7 @@ Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                     else if (parm1 == kClearOutputButton) {
                         fScriptEngine->ClearOutput();
                     }
-                    else if (parm1 == kEntrySelector) {  // <-- ADD THIS
+                    else if (parm1 == kEntrySelector) {
                         std::string path = fFileHandler->Browse();
                         if (!path.empty()) {
                             fFileHandler->OpenEntrySelector(path.c_str());
