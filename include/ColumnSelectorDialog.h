@@ -11,17 +11,10 @@
 #include "DataReader.h"
 #include "PlotTypes.h"
 
-// ============================================================================
-// ColumnSelectorDialog
-// All private member names exactly match ColumnSelector.cpp
-// FIXED: Changed TGRadioButton to TGCheckButton to match implementation
-// ============================================================================
 class ColumnSelectorDialog : public TGTransientFrame {
-    //RQ_OBJECT("ColumnSelectorDialog")
     ClassDefOverride(ColumnSelectorDialog, 0)
 
 public:
-    // Signature matches ColumnSelector.cpp line 7
     ColumnSelectorDialog(const TGWindow* parent,
                          const ColumnData* columnData,
                          PlotConfig*       plotConfig,
@@ -37,22 +30,14 @@ public:
     void CloseWindow() override { UnmapWindow(); }
     Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2) override;
 
-    ///// Problem part
-    //virtual void CloseWindow() { UnmapWindow(); }
-    //Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2);
-     
     void UpdateColumnVisibility();
 
-    // ClassDef 0 avoids -Winconsistent-missing-override with ROOT 6.26
-    
-
 private:
-    // Out-parameters — owned by the caller (ColumnSelector wrapper)
     const ColumnData* data;
     PlotConfig*       config;
     bool*             dialogResult;
 
-    // FIXED: Plot-type checkboxes (not radio buttons - we handle mutual exclusion manually)
+    // Plot-type checkboxes
     TGCheckButton* radioTGraph;
     TGCheckButton* radioTGraphErrors;
     TGCheckButton* radioTH1D;
@@ -65,25 +50,28 @@ private:
     TGCheckButton* radioTH3F;
     TGCheckButton* radioTH3I;
 
-    // Column selector combos
+    // Numeric column combos
     TGComboBox* xColumnCombo;
     TGComboBox* yColumnCombo;
     TGComboBox* zColumnCombo;
     TGComboBox* xErrCombo;
     TGComboBox* yErrCombo;
 
+    // ── NEW: label column from string columns ──
+    TGComboBox* labelColumnCombo;
+    TGLabel*    labelColumnLabel;
+
     // Buttons
     TGTextButton* okButton;
     TGTextButton* cancelButton;
 
-    // Private helpers — names match cpp exactly
     void PopulateComboBox(TGComboBox* combo, int startIdx);
     void DoOK();
     void DoCancel();
 };
 
 // ============================================================================
-// ColumnSelector — thin RAII wrapper used by PlotManager::AddPlot()
+// ColumnSelector wrapper
 // ============================================================================
 class ColumnSelector {
 private:
@@ -93,16 +81,12 @@ private:
     const ColumnData& fData;
 
 public:
-    ColumnSelector(const TGWindow* p, const ColumnData& data) 
+    ColumnSelector(const TGWindow* p, const ColumnData& data)
         : fParent(p), fData(data) {}
 
-    // ADD THIS METHOD
     Int_t DoModal() {
-        // Create the dialog and run it modally
         ColumnSelectorDialog* diag = new ColumnSelectorDialog(fParent, &fData, &fConfig, &fAccepted);
-        Int_t ret = diag->DoModal();
-        //delete diag; // Clean up the dialog window memory
-        return ret;
+        return diag->DoModal();
     }
 
     PlotConfig* GetPlotConfig() {
@@ -110,4 +94,5 @@ public:
         return new PlotConfig(fConfig);
     }
 };
-#endif // COLUMNSELECTOR_H
+
+#endif // COLUMNSELECTORDIALOG_H
