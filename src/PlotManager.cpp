@@ -23,8 +23,29 @@
 #include <RooPlot.h>
 #include <RooFitResult.h>
 #include <RooFit.h>
+#include <TLatex.h>
+#include <TObjString.h>
 
 #include <iostream>
+
+static void MaybeDrawLabels(TGraph* g, const ColumnData& data) {
+    if (!g || !g->TestBit(BIT(20))) return;
+    TObject* tag = g->GetListOfFunctions()->FindObject("_LabelColumnTag_");
+    if (!tag) return;
+    int labelCol = -1;
+    sscanf(((TObjString*)tag)->GetString().Data(), "labelCol:%d", &labelCol);
+    if (labelCol < 0 || labelCol >= (int)data.stringData.size()) return;
+    const auto& lbls = data.stringData[labelCol];
+    int n = std::min((int)lbls.size(), g->GetN());
+    TLatex latex;
+    latex.SetTextSize(0.022);
+    latex.SetTextAlign(12);
+    for (int i = 0; i < n; ++i) {
+        double x, y;
+        g->GetPoint(i, x, y);
+        latex.DrawLatex(x, y, lbls[i].c_str());
+    }
+}
 
 
 // ============================================================================
@@ -155,6 +176,7 @@ void PlotManager::CreateDividedCanvas(const std::string& title, FitUtils::FitTyp
             TGraph* g = PlotCreator::CreateTGraph(data, config);
             if (g) {
                 g->Draw("APL");
+                MaybeDrawLabels(g, data);
                 gROOT->GetListOfGlobals()->Add(g);
                 ApplyFit(g, fitType, config.color, customFunc);
             }
@@ -162,6 +184,7 @@ void PlotManager::CreateDividedCanvas(const std::string& title, FitUtils::FitTyp
             TGraphErrors* g = PlotCreator::CreateTGraphErrors(data, config);
             if (g) {
                 g->Draw("APE");
+                MaybeDrawLabels(g, data);
                 gROOT->GetListOfGlobals()->Add(g);
                 ApplyFit(g, fitType, config.color, customFunc);
             }
@@ -228,6 +251,7 @@ void PlotManager::CreateOverlayCanvas(const std::string& title, FitUtils::FitTyp
             TGraph* g = PlotCreator::CreateTGraph(data, config);
             if (g) {
                 g->Draw(firstDraw ? "APL" : "PL SAME");
+                MaybeDrawLabels(g, data); 
                 gROOT->GetListOfGlobals()->Add(g);
                 
                 std::string legendLabel = Form("%s vs %s", 
@@ -242,6 +266,7 @@ void PlotManager::CreateOverlayCanvas(const std::string& title, FitUtils::FitTyp
             TGraphErrors* g = PlotCreator::CreateTGraphErrors(data, config);
             if (g) {
                 g->Draw(firstDraw ? "APE" : "PE SAME");
+                MaybeDrawLabels(g, data);
                 gROOT->GetListOfGlobals()->Add(g);
                 
                 std::string legendLabel = Form("%s vs %s", 
@@ -321,6 +346,7 @@ void PlotManager::CreateSeparateCanvases(const std::string& title, FitUtils::Fit
             TGraph* g = PlotCreator::CreateTGraph(data, config);
             if (g) {
                 g->Draw("APL");
+                 MaybeDrawLabels(g, data);
                 gROOT->GetListOfGlobals()->Add(g);
                 
                 std::string legendLabel = Form("%s vs %s", 
@@ -334,6 +360,7 @@ void PlotManager::CreateSeparateCanvases(const std::string& title, FitUtils::Fit
             TGraphErrors* g = PlotCreator::CreateTGraphErrors(data, config);
             if (g) {
                 g->Draw("APE");
+                 MaybeDrawLabels(g, data);
                 gROOT->GetListOfGlobals()->Add(g);
                 
                 std::string legendLabel = Form("%s vs %s", 

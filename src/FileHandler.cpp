@@ -147,8 +147,8 @@ void FileHandler::Load(const std::string& filepath)
 // ────────────────────────────────────────────────────────────────────────────
 bool FileHandler::LoadROOTIntoGUI(const char* filepath)
 {
-    ROOTBranchSelectorDialog* dlg =
-        new ROOTBranchSelectorDialog(fMainGUI, filepath);
+    // ROOTBranchSelectorDialog* dlg =new ROOTBranchSelectorDialog(fMainGUI, filepath);
+    ROOTBranchSelectorDialog* dlg = new ROOTBranchSelectorDialog(gClient->GetRoot(), filepath);
 
     Int_t ret = dlg->DoModal();
 
