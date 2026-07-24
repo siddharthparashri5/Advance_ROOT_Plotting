@@ -209,6 +209,35 @@ void AdvancedPlotGUI::BuildCanvasOptionsSection()
     divFrame->AddFrame(fNColsEntry, new TGLayoutHints(kLHintsLeft, 2,5,2,2));
     
     AddFrame(divFrame, new TGLayoutHints(kLHintsLeft, 5,5,5,5));
+
+    // ── Publication-style panel labels ──────────────────────────────────────
+    TGHorizontalFrame* labelFrame = new TGHorizontalFrame(this);
+
+    fPanelLabelCheck = new TGCheckButton(labelFrame, "Add panel labels:");
+    labelFrame->AddFrame(fPanelLabelCheck, new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 5,5,2,2));
+
+    fPanelLabelStyleCombo = new TGComboBox(labelFrame);
+    fPanelLabelStyleCombo->AddEntry("(a), (b), (c) ...",   0);
+    fPanelLabelStyleCombo->AddEntry("(i), (ii), (iii) ...",1);
+    fPanelLabelStyleCombo->AddEntry("(1), (2), (3) ...",   2);
+    fPanelLabelStyleCombo->AddEntry("A, B, C ...",         3);
+    fPanelLabelStyleCombo->AddEntry("a, b, c ...",         4);
+    fPanelLabelStyleCombo->Select(0);
+    fPanelLabelStyleCombo->Resize(150, 20);
+    labelFrame->AddFrame(fPanelLabelStyleCombo, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
+
+    labelFrame->AddFrame(new TGLabel(labelFrame, "Position:"),
+        new TGLayoutHints(kLHintsLeft | kLHintsCenterY, 10,5,2,2));
+    fPanelLabelPosCombo = new TGComboBox(labelFrame);
+    fPanelLabelPosCombo->AddEntry("Top Left",     0);
+    fPanelLabelPosCombo->AddEntry("Top Right",    1);
+    fPanelLabelPosCombo->AddEntry("Bottom Left",  2);
+    fPanelLabelPosCombo->AddEntry("Bottom Right", 3);
+    fPanelLabelPosCombo->Select(0);
+    fPanelLabelPosCombo->Resize(110, 20);
+    labelFrame->AddFrame(fPanelLabelPosCombo, new TGLayoutHints(kLHintsLeft, 5,5,2,2));
+
+    AddFrame(labelFrame, new TGLayoutHints(kLHintsLeft, 5,5,5,5));
 }
 
 // ============================================================================

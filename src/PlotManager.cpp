@@ -28,6 +28,45 @@
 
 #include <iostream>
 
+// ── Panel-label helpers (publication-style (a),(b) / (i),(ii) / etc.) ───────
+static std::string ToRomanLower(int n) {
+    if (n <= 0) return "";
+    struct RomanVal { int value; const char* symbol; };
+    static const RomanVal table[] = {
+        {1000,"m"},{900,"cm"},{500,"d"},{400,"cd"},
+        {100,"c"},{90,"xc"},{50,"l"},{40,"xl"},
+        {10,"x"},{9,"ix"},{5,"v"},{4,"iv"},{1,"i"}
+    };
+    std::string result;
+    for (const auto& rv : table)
+        while (n >= rv.value) { result += rv.symbol; n -= rv.value; }
+    return result;
+}
+
+static std::string ToAlpha(int index, bool upper) {
+    // 0-based: 0->a, 1->b, ..., 25->z, 26->aa, 27->ab, ...
+    std::string s;
+    int n = index;
+    do {
+        int rem = n % 26;
+        char c = (upper ? 'A' : 'a') + rem;
+        s = std::string(1, c) + s;
+        n = n / 26 - 1;
+    } while (n >= 0);
+    return s;
+}
+
+static std::string MakePanelLabel(int index, int style) {
+    switch (style) {
+        case 0:  return "(" + ToAlpha(index, false) + ")";        // (a), (b), ...
+        case 1:  return "(" + ToRomanLower(index + 1) + ")";      // (i), (ii), ...
+        case 2:  return "(" + std::to_string(index + 1) + ")";    // (1), (2), ...
+        case 3:  return ToAlpha(index, true);                     // A, B, ...
+        case 4:  return ToAlpha(index, false);                    // a, b, ...
+        default: return "(" + ToAlpha(index, false) + ")";
+    }
+}
+
 static void MaybeDrawLabels(TGraph* g, const ColumnData& data) {
     if (!g || !g->TestBit(BIT(20))) return;
     TObject* tag = g->GetListOfFunctions()->FindObject("_LabelColumnTag_");
@@ -61,6 +100,35 @@ PlotManager::PlotManager(AdvancedPlotGUI* mainGUI)
 // ============================================================================
 PlotManager::~PlotManager()
 {
+}
+
+// ============================================================================
+// Draw a publication-style panel label ( (a),(b) / (i),(ii) / etc. ) on a pad
+// ============================================================================
+void PlotManager::DrawPanelLabel(TVirtualPad* pad, int index)
+{
+    if (!pad || !fMainGUI->GetPanelLabelsEnabled()) return;
+
+    pad->cd();
+    std::string label = MakePanelLabel(index, fMainGUI->GetPanelLabelStyle());
+
+    Double_t x = 0.18, y = 0.85;
+    Short_t  align = 11;
+    switch (fMainGUI->GetPanelLabelPosition()) {
+        case 0: x = 0.18; y = 0.85; align = 11; break; // Top Left
+        case 1: x = 0.88; y = 0.85; align = 31; break; // Top Right
+        case 2: x = 0.18; y = 0.15; align = 11; break; // Bottom Left
+        case 3: x = 0.88; y = 0.15; align = 31; break; // Bottom Right
+        default: break;
+    }
+
+    TLatex* lat = new TLatex();
+    lat->SetNDC(kTRUE);
+    lat->SetTextFont(42);
+    lat->SetTextSize(0.06);
+    lat->SetTextAlign(align);
+    lat->DrawLatex(x, y, label.c_str());
+    pad->Modified();
 }
 
 // ============================================================================
@@ -220,6 +288,8 @@ void PlotManager::CreateDividedCanvas(const std::string& title, FitUtils::FitTyp
                 gROOT->GetListOfGlobals()->Add(h);
             }
         }
+
+        DrawPanelLabel(canvas->cd(i + 1), (int)i);
     }
 
     canvas->Update();
@@ -318,7 +388,10 @@ void PlotManager::CreateOverlayCanvas(const std::string& title, FitUtils::FitTyp
             padLegend->Draw();
         }
     }
-    
+
+    // Overlay canvas is a single panel - draw one label (e.g. "(a)") on it
+    DrawPanelLabel(canvas, 0);
+
     canvas->Update();
     PrintCanvasInfo(canvas);
 }
@@ -410,7 +483,9 @@ void PlotManager::CreateSeparateCanvases(const std::string& title, FitUtils::Fit
         if (canvasLegend->GetNRows() > 0) {
             canvasLegend->Draw();
         }
-        
+
+        DrawPanelLabel(c, (int)i);
+
         c->Update();
         PrintCanvasInfo(c);
     }

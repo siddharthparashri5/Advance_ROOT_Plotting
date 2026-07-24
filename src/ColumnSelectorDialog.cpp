@@ -6,7 +6,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
                                            const ColumnData* columnData,
                                            PlotConfig* plotConfig,
                                            bool* result)
-: TGTransientFrame(gClient->GetRoot(), parent, 620, 560),
+: TGTransientFrame(gClient->GetRoot(), parent, 620, 660),
   data(columnData),
   config(plotConfig),
   dialogResult(result)
@@ -128,6 +128,33 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
     colGroup->AddFrame(colFrame, new TGLayoutHints(kLHintsExpandX,5,5,5,5));
     mainFrame->AddFrame(colGroup, new TGLayoutHints(kLHintsExpandX,5,5,5,5));
 
+    // ── Histogram binning (1D/2D/3D) ───────────────────────────────────────
+    TGGroupFrame* binGroup = new TGGroupFrame(mainFrame, "Histogram Binning");
+    TGVerticalFrame* binFrame = new TGVerticalFrame(binGroup);
+
+    auto addBinRow = [&](TGVerticalFrame* parent, const char* label,
+                          TGNumberEntry*& entry, TGLabel*& lblOut, Int_t defVal) {
+        TGHorizontalFrame* row = new TGHorizontalFrame(parent);
+        TGLabel* lbl = new TGLabel(row, label);
+        lbl->SetWidth(120);
+        row->AddFrame(lbl, new TGLayoutHints(kLHintsLeft|kLHintsCenterY,5,5,2,2));
+        entry = new TGNumberEntry(row, defVal, 6, -1,
+                                   TGNumberFormat::kNESInteger,
+                                   TGNumberFormat::kNEAPositive,
+                                   TGNumberFormat::kNELLimitMinMax, 1, 10000);
+        entry->Resize(80, 20);
+        row->AddFrame(entry, new TGLayoutHints(kLHintsLeft,5,5,2,2));
+        parent->AddFrame(row, new TGLayoutHints(kLHintsExpandX,5,5,2,2));
+        lblOut = lbl;
+    };
+
+    addBinRow(binFrame, "X Bins:", binsXEntry, binsXLabel, 100);
+    addBinRow(binFrame, "Y Bins:", binsYEntry, binsYLabel, 100);
+    addBinRow(binFrame, "Z Bins:", binsZEntry, binsZLabel, 100);
+
+    binGroup->AddFrame(binFrame, new TGLayoutHints(kLHintsExpandX,5,5,5,5));
+    mainFrame->AddFrame(binGroup, new TGLayoutHints(kLHintsExpandX,5,5,5,5));
+
     // ── Buttons ────────────────────────────────────────────────────────────
     TGHorizontalFrame* buttonFrame = new TGHorizontalFrame(mainFrame);
     okButton     = new TGTextButton(buttonFrame, "OK",     1);
@@ -163,6 +190,10 @@ void ColumnSelectorDialog::DoOK() {
     config->xErrColumn = xErrCombo->GetSelected();
     config->yErrColumn = yErrCombo->GetSelected();
     config->labelColumn = labelColumnCombo->GetSelected();  // -1 if none
+
+    config->bins  = (int)binsXEntry->GetNumber();
+    config->binsY = (int)binsYEntry->GetNumber();
+    config->binsZ = (int)binsZEntry->GetNumber();
 
     if      (radioTGraph->IsOn())       config->type = PlotConfig::kTGraph;
     else if (radioTGraphErrors->IsOn()) config->type = PlotConfig::kTGraphErrors;
@@ -259,6 +290,12 @@ void ColumnSelectorDialog::UpdateColumnVisibility()
     labelColumnCombo->SetEnabled(labelsApplicable && hasStringCols);
     if (labelColumnLabel)
         gClient->NeedRedraw(labelColumnLabel);
+
+    // Bin counts: X bins for any histogram, Y bins for 2D/3D, Z bins for 3D only
+    // Note: TGNumberEntry uses SetState(), not SetEnabled() (that's for TGTextEntry/TGComboBox/buttons)
+    binsXEntry->SetState(h1 || h2 || h3);
+    binsYEntry->SetState(h2 || h3);
+    binsZEntry->SetState(h3);
 
     gClient->NeedRedraw(this);
 }
