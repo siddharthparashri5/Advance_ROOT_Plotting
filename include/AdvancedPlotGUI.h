@@ -56,6 +56,11 @@ private:
     TGCheckButton* fDividedCanvasCheck;
     TGNumberEntry* fNRowsEntry;
     TGNumberEntry* fNColsEntry;
+
+    // Publication-style panel labels ( (a),(b) / (i),(ii) / etc. )
+    TGCheckButton* fPanelLabelCheck;
+    TGComboBox*    fPanelLabelStyleCombo;
+    TGComboBox*    fPanelLabelPosCombo;
     TGComboBox* fFitFunctionCombo;
     TGTextEntry* fCustomFuncEntry;
     TGTextButton* fEntrySelectorButton;
@@ -97,6 +102,11 @@ public:
     
     Int_t GetNRows() const { return (Int_t)fNRowsEntry->GetNumber(); }
     Int_t GetNCols() const { return (Int_t)fNColsEntry->GetNumber(); }
+
+    // Panel label state (for TLatex (a)/(b)/(i)/(ii) style annotations)
+    Bool_t GetPanelLabelsEnabled() const { return fPanelLabelCheck->IsOn(); }
+    Int_t  GetPanelLabelStyle()    const { return fPanelLabelStyleCombo->GetSelected(); }
+    Int_t  GetPanelLabelPosition() const { return fPanelLabelPosCombo->GetSelected(); }
     
     TGTextEdit* GetScriptEditor() { return fScriptEditor; }
     TGTextView* GetScriptOutput() { return fScriptOutput; }

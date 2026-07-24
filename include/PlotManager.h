@@ -2,6 +2,7 @@
 #define PLOTMANAGER_H
 
 #include <TCanvas.h>
+#include <TVirtualPad.h>
 #include <TH1.h>
 #include <TObject.h>
 #include <vector>
@@ -28,6 +29,10 @@ private:
                  const std::string& customFunc);
     void ApplyRooFitGaussian(TH1* hist, Int_t color);
     void PrintCanvasInfo(TCanvas* canvas);
+
+    // Draws a publication-style panel label ( (a),(b) / (i),(ii) / (1),(2) / A,B / a,b )
+    // on the given pad, using the style/position chosen in the GUI. `index` is 0-based.
+    void DrawPanelLabel(TVirtualPad* pad, int index);
     
 public:
     PlotManager(AdvancedPlotGUI* mainGUI);

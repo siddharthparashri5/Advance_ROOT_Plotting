@@ -61,6 +61,14 @@ private:
     TGComboBox* labelColumnCombo;
     TGLabel*    labelColumnLabel;
 
+    // ── NEW: bin counts for 1D/2D/3D histograms ──
+    TGNumberEntry* binsXEntry;
+    TGNumberEntry* binsYEntry;
+    TGNumberEntry* binsZEntry;
+    TGLabel*       binsXLabel;
+    TGLabel*       binsYLabel;
+    TGLabel*       binsZLabel;
+
     // Buttons
     TGTextButton* okButton;
     TGTextButton* cancelButton;
