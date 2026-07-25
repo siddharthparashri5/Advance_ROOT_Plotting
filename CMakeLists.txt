@@ -130,7 +130,24 @@ target_link_libraries(AdvancedPlotGUIApp
 set_target_properties(AdvancedPlotGUIApp PROPERTIES
     OUTPUT_NAME AdvancedPlotGUIApp
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
-    INSTALL_RPATH "${CMAKE_BINARY_DIR}:${ROOT_LIBRARY_DIR}"
+    # NOTE: CMake's BUILD_RPATH/INSTALL_RPATH properties take a *CMake list*
+    # (semicolon-separated), which CMake then translates into one -rpath
+    # linker flag per entry. A colon-joined string works "by accident" on
+    # Linux (ld's single -rpath flag already accepts a colon-separated list,
+    # matching ELF DT_RUNPATH), but breaks on macOS: dyld doesn't split on
+    # colons at all, so the whole colon-joined string gets treated as one
+    # literal (nonexistent) path -- exactly the "Library not loaded" error
+    # this caused. Semicolons here are the portable, correct choice.
+    #
+    # BUILD_RPATH: used when running ./AdvancedPlotGUIApp straight out of the
+    # build directory (before installing).
+    BUILD_RPATH "${CMAKE_BINARY_DIR};${ROOT_LIBRARY_DIR}"
+    # INSTALL_RPATH: baked into the binary once it's installed via
+    # `cmake --install`/`make install`, so it finds libAdvancedPlotGUI at its
+    # installed location (CMAKE_INSTALL_PREFIX/lib) instead of the build
+    # directory -- this is what makes a true system-wide install work even
+    # after the build folder is deleted or moved.
+    INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${ROOT_LIBRARY_DIR}"
 )
 
 # ============================================================================
@@ -140,6 +157,23 @@ install(TARGETS AdvancedPlotGUI AdvancedPlotGUIApp
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
+
+# ROOT's dictionary generation also produces a *_rdict.pcm (and often a
+# .rootmap) file next to the library -- these are needed at runtime and must
+# ship alongside libAdvancedPlotGUI.so, but their exact name depends on the
+# ROOT version/macro implementation and isn't known until after the build
+# runs. install(CODE ...) below globs for them at *install time* (not
+# configure time, since they don't exist yet when CMake first runs) and
+# copies whatever it finds into the same lib/ directory.
+install(CODE "
+    file(GLOB _AdvancedPlotGUI_PCM_FILES
+        \"${CMAKE_CURRENT_BINARY_DIR}/*.pcm\"
+        \"${CMAKE_CURRENT_BINARY_DIR}/*.rootmap\")
+    foreach(_f \${_AdvancedPlotGUI_PCM_FILES})
+        message(STATUS \"Installing dictionary file: \${_f}\")
+        file(INSTALL DESTINATION \"${CMAKE_INSTALL_PREFIX}/lib\" TYPE FILE FILES \"\${_f}\")
+    endforeach()
+")
 
 # ============================================================================
 # Summary
@@ -154,4 +188,3 @@ message(STATUS " Library      : libAdvancedPlotGUI.so")
 message(STATUS " Executable   : AdvancedPlotGUIApp")
 message(STATUS "================================================")
 message(STATUS "")
-
