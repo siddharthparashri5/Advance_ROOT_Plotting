@@ -65,6 +65,7 @@ private:
     TGTextEntry* fCustomFuncEntry;
     TGTextButton* fEntrySelectorButton;
      TGTextButton* fLoadROOTToGUIButton;
+    TGCheckButton* fShowPopupsCheck;
     
     // Script panel
     TGComboBox* fScriptLangCombo;
@@ -99,6 +100,10 @@ public:
     void SetFilePath(const char* path) { fFileEntry->SetText(path); }
 
     void OnCommandEnter();
+
+    // Toggles whether informational popups (TGMsgBox) are shown app-wide;
+    // see PopupControl.h. Connected to fShowPopupsCheck's "Clicked()" signal.
+    void OnTogglePopups();
     
     Int_t GetNRows() const { return (Int_t)fNRowsEntry->GetNumber(); }
     Int_t GetNCols() const { return (Int_t)fNColsEntry->GetNumber(); }

@@ -61,6 +61,12 @@ private:
     TGComboBox* labelColumnCombo;
     TGLabel*    labelColumnLabel;
 
+    // ── NEW: categorical X-axis (bar chart of a string column), TH1 only ──
+    TGComboBox* categoryColumnCombo;      // "None" + string headers
+    TGComboBox* categoryValueCombo;       // "None (count)" + numeric headers
+    TGLabel*    categoryColumnLabel;
+    TGLabel*    categoryValueLabel;
+
     // ── NEW: bin counts for 1D/2D/3D histograms ──
     TGNumberEntry* binsXEntry;
     TGNumberEntry* binsYEntry;
