@@ -3,6 +3,7 @@
 #include <TGLayout.h>
 #include <TG3DLine.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 #include <TGNumberEntry.h>
 #include <TSystem.h>
 #include <TBranch.h>
@@ -328,7 +329,7 @@ bool ROOTBranchSelectorDialog::LoadSelectedData()
 {
     Int_t selectedId = fObjectListBox->GetSelected();
     if (selectedId < 0 || selectedId >= (Int_t)fObjects.size()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "No Selection", "Please select an object from the list.",
             kMBIconExclamation, kMBOk);
         return false;
@@ -420,7 +421,7 @@ bool ROOTBranchSelectorDialog::LoadTreeBranches(const std::string& treeName,
     }
 
     if (toLoad.empty()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "No Branches",
             "No numeric branches found or selected.\n"
             "Only Double_t / Float_t / Int_t branches are supported.",

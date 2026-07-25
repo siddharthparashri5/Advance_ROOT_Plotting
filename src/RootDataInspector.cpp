@@ -2,6 +2,7 @@
 
 #include <TGLayout.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 
 #include <TKey.h>
 #include <TBranch.h>
@@ -129,7 +130,7 @@ void RootDataInspector::OnApplyFormula()
 {
     TString formula = formulaEntry->GetText();
     if (formula.IsNull() || formula.IsWhitespace()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "Empty Formula", "Please enter a selection expression.",
             kMBIconExclamation, kMBOk);
     }

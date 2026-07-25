@@ -4,6 +4,7 @@
 #include <TGSplitter.h>
 #include <TG3DLine.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 #include <TSystem.h>
 #include <TCanvas.h>
 #include <TH1.h>
@@ -33,7 +34,7 @@ ROOTFileBrowser::ROOTFileBrowser(const TGWindow* p, const char* filename)
     // Try to open the file
     fFile = TFile::Open(filename);
     if (!fFile || fFile->IsZombie()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "Error", Form("Cannot open ROOT file:\n%s", filename),
             kMBIconStop, kMBOk);
         fModalResult = 0;
@@ -318,7 +319,7 @@ void ROOTFileBrowser::PlotSelectedObjects()
     }
     
     if (selected.empty()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "No Selection", "Please select at least one object to plot.",
             kMBIconExclamation, kMBOk);
         return;

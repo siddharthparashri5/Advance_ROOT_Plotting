@@ -6,6 +6,7 @@
 
 #include <TGClient.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 #include <TCanvas.h>
 #include <TGraph.h>
 #include <TGraphErrors.h>
@@ -137,7 +138,7 @@ void PlotManager::DrawPanelLabel(TVirtualPad* pad, int index)
 void PlotManager::AddPlot(const ColumnData& data)
 {
     if (data.data.empty() || data.headers.empty()) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "No Data",
             "No data loaded. Please load a CSV or TXT file first.\n"
             "ROOT files are viewed in the Inspector, not plotted directly.",
@@ -204,7 +205,7 @@ void PlotManager::CreatePlots(const std::string& canvasTitle, Bool_t overlayMode
                              const ColumnData& data)
 {
     if (fPlotConfigs.empty()) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Warning", "No plots configured. Use 'Add Plot...' to create plots.",
             kMBIconExclamation, kMBOk);
         return;

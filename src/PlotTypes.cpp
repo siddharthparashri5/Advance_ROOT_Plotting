@@ -12,6 +12,7 @@
 #include <TLatex.h>
 #include <iostream>
 #include <string>
+#include <map>
 
 static int gPlotCount = 0;
 static std::string UniqueName(const char* prefix) {
@@ -21,7 +22,10 @@ static std::string UniqueName(const char* prefix) {
 namespace PlotCreator {
 
 // ── 1-D Histograms ──────────────────────────────────────────────────────────
-TH1* CreateTH1(const ColumnData& data, const PlotConfig& cfg) { return CreateTH1D(data, cfg); }
+TH1* CreateTH1(const ColumnData& data, const PlotConfig& cfg) {
+    if (cfg.categoryColumn >= 0) return CreateTH1Categorical(data, cfg);
+    return CreateTH1D(data, cfg);
+}
 
 TH1D* CreateTH1D(const ColumnData& data, const PlotConfig& cfg) {
     if (cfg.xColumn < 0 || cfg.xColumn >= (int)data.data.size()) {
@@ -82,6 +86,64 @@ TH1I* CreateTH1I(const ColumnData& data, const PlotConfig& cfg) {
                         cfg.bins, (int)xmin, (int)xmax);
     h->SetLineColor(cfg.color); h->SetLineWidth(2);
     for (double v : data.data[cfg.xColumn]) h->Fill((int)v);
+    return h;
+}
+
+// ── Categorical (string-column) 1D histogram, e.g. bar chart of a category ──
+TH1D* CreateTH1Categorical(const ColumnData& data, const PlotConfig& cfg) {
+    if (cfg.categoryColumn < 0 || cfg.categoryColumn >= (int)data.stringData.size()) {
+        std::cerr << "[PlotCreator] CreateTH1Categorical: categoryColumn out of range\n";
+        return nullptr;
+    }
+    const auto& cats = data.stringData[cfg.categoryColumn];
+    if (cats.empty()) {
+        std::cerr << "[PlotCreator] CreateTH1Categorical: category column is empty\n";
+        return nullptr;
+    }
+
+    // Optional numeric value column: if set, sum its values per category;
+    // otherwise just count occurrences per category.
+    bool hasValueCol = (cfg.categoryValueColumn >= 0 &&
+                         cfg.categoryValueColumn < (int)data.data.size());
+    const std::vector<double>* values = hasValueCol ? &data.data[cfg.categoryValueColumn] : nullptr;
+
+    // Collect unique categories, preserving first-seen order
+    std::vector<std::string> uniqueCats;
+    std::map<std::string, int> catIndex;
+    for (const auto& c : cats) {
+        if (catIndex.find(c) == catIndex.end()) {
+            catIndex[c] = (int)uniqueCats.size();
+            uniqueCats.push_back(c);
+        }
+    }
+
+    int nBins = (int)uniqueCats.size();
+    std::string name   = UniqueName("h1cat");
+    std::string yTitle = hasValueCol ? data.headers[cfg.categoryValueColumn] : "Count";
+    std::string title  = cfg.title.empty() ? data.stringHeaders[cfg.categoryColumn] : cfg.title;
+
+    TH1D* h = new TH1D(name.c_str(),
+                        (title + ";" + data.stringHeaders[cfg.categoryColumn] + ";" + yTitle).c_str(),
+                        nBins, 0, nBins);
+    h->SetLineColor(cfg.color);
+    h->SetLineWidth(2);
+    h->SetFillColorAlpha(cfg.color, 0.35);
+    h->SetBarWidth(0.8);
+    h->SetBarOffset(0.1);
+    h->SetStats(kFALSE);  // mean/RMS of a bin *index* isn't meaningful for a bar chart
+
+    for (int i = 0; i < nBins; ++i)
+        h->GetXaxis()->SetBinLabel(i + 1, uniqueCats[i].c_str());
+
+    int n = (int)cats.size();
+    if (values) n = std::min(n, (int)values->size());
+
+    for (int i = 0; i < n; ++i) {
+        double x = catIndex[cats[i]] + 0.5;  // fill at the bin center
+        double w = values ? (*values)[i] : 1.0;
+        h->Fill(x, w);
+    }
+
     return h;
 }
 

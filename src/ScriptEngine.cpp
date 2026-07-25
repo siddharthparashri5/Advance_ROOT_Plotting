@@ -10,6 +10,7 @@
 #include <TObjString.h>
 #include <TObjArray.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 
 #include <fstream>
 #include <sstream>
@@ -202,7 +203,7 @@ void ScriptEngine::LoadScript()
 
     std::ifstream file(fileInfo.fFilename);
     if (!file.is_open()) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Error", Form("Cannot open: %s", fileInfo.fFilename),
             kMBIconStop, kMBOk);
         return;
@@ -253,7 +254,7 @@ void ScriptEngine::SaveScript()
 
     std::ofstream file(fileInfo.fFilename);
     if (!file.is_open()) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Error", Form("Cannot write: %s", fileInfo.fFilename),
             kMBIconStop, kMBOk);
         return;

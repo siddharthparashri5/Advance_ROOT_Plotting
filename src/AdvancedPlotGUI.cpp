@@ -15,6 +15,7 @@
 #include <TGComboBox.h>
 #include <TGLabel.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 #include <TGTextView.h>
 #include <TGTextBuffer.h>
 #include <TGFrame.h>
@@ -22,6 +23,7 @@
 #include <TVirtualX.h>
 
 #include <TApplication.h>
+#include <iostream>
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TRint.h>
@@ -139,6 +141,19 @@ void AdvancedPlotGUI::BuildFileSection()
     dndLabel->SetTextColor(0x0000FF);
     dndLabel->SetTextFont("-*-helvetica-bold-r-*-*-12-*-*-*-*-*-*-*");
     fileGroup->AddFrame(dndLabel, new TGLayoutHints(kLHintsCenterX, 5,5,2,5));
+
+    // Toggle for informational popups (Success/Warning/Error dialogs). Off by
+    // default they still print to the console, so nothing is lost -- it just
+    // stops the "OK" clicking marathon after a batch of plots/loads.
+    fShowPopupsCheck = new TGCheckButton(fileGroup,
+        "Show popup messages (uncheck to log to console instead)");
+    fShowPopupsCheck->SetOn(kTRUE);
+    fShowPopupsCheck->SetToolTipText(
+        "When unchecked, informational popups (success/warning/error) are\n"
+        "printed to the terminal instead of shown as a window.\n"
+        "Yes/No confirmation dialogs always still show.");
+    fShowPopupsCheck->Connect("Clicked()", "AdvancedPlotGUI", this, "OnTogglePopups()");
+    fileGroup->AddFrame(fShowPopupsCheck, new TGLayoutHints(kLHintsLeft, 5,5,2,5));
     
     AddFrame(fileGroup, new TGLayoutHints(kLHintsExpandX, 5,5,5,5));
 }
@@ -454,6 +469,17 @@ void AdvancedPlotGUI::OnCommandEnter()
 }
 
 // ============================================================================
+// Toggle informational popups app-wide (see PopupControl.h)
+// ============================================================================
+void AdvancedPlotGUI::OnTogglePopups()
+{
+    PopupControl::SetEnabled(fShowPopupsCheck->IsOn());
+    std::cout << "Popup messages "
+              << (fShowPopupsCheck->IsOn() ? "enabled" : "disabled (logging to console instead)")
+              << std::endl;
+}
+
+// ============================================================================
 // Enable/disable plot controls
 // ============================================================================
 void AdvancedPlotGUI::EnablePlotControls(Bool_t enable)
@@ -573,7 +599,7 @@ Bool_t AdvancedPlotGUI::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
                             if (tpath.EndsWith(".root", TString::kIgnoreCase)) {
                                 fFileHandler->LoadROOTIntoGUI(path.c_str());
                             } else {
-                                new TGMsgBox(gClient->GetRoot(), this,"Not a ROOT File","Please select a .root file.\n\n"
+                                ShowMsgBox(gClient->GetRoot(), this,"Not a ROOT File","Please select a .root file.\n\n"
                                     "For CSV/TXT files, use the Browse button instead.",
                                     kMBIconExclamation, kMBOk);
                                 }

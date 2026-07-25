@@ -10,6 +10,7 @@
 #include <TGFileDialog.h>
 #include <TGNumberEntry.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 #include <TGClient.h>
 #include <TSystem.h>
 #include <TBrowser.h>
@@ -82,7 +83,7 @@ void FileHandler::OpenEntrySelector(const char* filepath)
     // Verify it's a ROOT file
     TString fname(filepath);
     if (!fname.EndsWith(".root")) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Not a ROOT file", 
             "Entry selector works only with .root files",
             kMBIconExclamation, kMBOk);
@@ -99,7 +100,7 @@ void FileHandler::OpenEntrySelector(const char* filepath)
 void FileHandler::Load(const std::string& filepath)
 {
     if (filepath.empty()) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Error", "Please enter a file path.",
             kMBIconExclamation, kMBOk);
         return;
@@ -120,7 +121,7 @@ void FileHandler::Load(const std::string& filepath)
 
     // Load other text data using DataReader
     if (!DataReader::ReadFile(filepath, fCurrentData)) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Error", "Failed to load data file. Check console for details.",
             kMBIconStop, kMBOk);
         return;
@@ -128,7 +129,7 @@ void FileHandler::Load(const std::string& filepath)
 
     fMainGUI->EnablePlotControls(true);
 
-    new TGMsgBox(gClient->GetRoot(), fMainGUI,
+    ShowMsgBox(gClient->GetRoot(), fMainGUI,
         "Success", Form("Data loaded successfully!\nRows: %d\nColumns: %d",
             fCurrentData.GetNumRows(), fCurrentData.GetNumColumns()),
         kMBIconAsterisk, kMBOk);
@@ -162,7 +163,7 @@ bool FileHandler::LoadROOTIntoGUI(const char* filepath)
     delete dlg;
 
     if (fCurrentData.GetNumColumns() == 0 || fCurrentData.GetNumRows() == 0) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Warning",
             "No data was loaded (empty result).\n"
             "Try selecting different branches or a smaller entry range.",
@@ -173,7 +174,7 @@ bool FileHandler::LoadROOTIntoGUI(const char* filepath)
     // Enable the Add Plot and Create Plots buttons
     fMainGUI->EnablePlotControls(kTRUE);
 
-    new TGMsgBox(gClient->GetRoot(), fMainGUI,
+    ShowMsgBox(gClient->GetRoot(), fMainGUI,
         "ROOT Data Loaded",
         Form("Successfully loaded into GUI!\n\n"
              "Columns (branches): %d\n"
@@ -224,7 +225,7 @@ void FileHandler::LoadRootFile(const char* filepath)
     // Open the file for our use
     fCurrentRootFile = TFile::Open(filepath, "READ");
     if (!fCurrentRootFile || fCurrentRootFile->IsZombie()) {
-        new TGMsgBox(gClient->GetRoot(), nullptr,
+        ShowMsgBox(gClient->GetRoot(), nullptr,
             "Error", Form("Cannot open ROOT file:\n%s", filepath),
             kMBIconStop, kMBOk);
         fCurrentRootFile = nullptr;
@@ -265,7 +266,7 @@ void FileHandler::LoadRootFile(const char* filepath)
     
     // Show summary message
     if (ret == 1) {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "ROOT File Loaded",
             Form("Loaded %d objects from ROOT file.\n\n"
                  "Objects have been plotted in separate canvases.",
@@ -305,7 +306,7 @@ void FileHandler::LoadRootFile(const char* filepath)
     // Open the file for our use
     fCurrentRootFile = TFile::Open(filepath, "READ");
     if (!fCurrentRootFile || fCurrentRootFile->IsZombie()) {
-        new TGMsgBox(gClient->GetRoot(), nullptr,
+        ShowMsgBox(gClient->GetRoot(), nullptr,
             "Error", Form("Cannot open ROOT file:\n%s", filepath),
             kMBIconStop, kMBOk);
         fCurrentRootFile = nullptr;
@@ -331,7 +332,7 @@ void FileHandler::LoadRootFile(const char* filepath)
 
         // NOW also ask if the user wants to load into the plot-config workflow
         Int_t answer = 0;
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Load into GUI?",
             "Objects plotted directly.\n\n"
             "Do you also want to load a TTree/histogram into the\n"
@@ -381,101 +382,51 @@ void FileHandler::LoadCSVWithSettings(const char* filepath, char delim,
 {
     // CRITICAL: Clear old data first
     fCurrentData = ColumnData();
-    
-    std::ifstream file(filepath);
-    if (!file.is_open()) {
-        printf("ERROR: Cannot open file!\n");
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
-            "Error", Form("Cannot open: %s", filepath),
-            kMBIconStop, kMBOk);
-        return;
-    }
-    
-    std::string line;
-    int lineNum = 0;
 
-    // Skip rows
-    while (lineNum < skipRows && std::getline(file, line)) {
-        lineNum++;
-    }
-
-    // Header row
-    if (useHeader && std::getline(file, line)) {
-        lineNum++;
-        std::stringstream ss(line);
-        std::string token;
-        while (std::getline(ss, token, delim)) {
-            // Trim whitespace
-            token.erase(0, token.find_first_not_of(" \t\r\n"));
-            token.erase(token.find_last_not_of(" \t\r\n") + 1);
-            if (!token.empty() && token.back() == '\r') token.pop_back();
-            fCurrentData.headers.push_back(token);
-        }
-        
-        if (!fCurrentData.headers.empty()) {
-            fCurrentData.data.resize(fCurrentData.headers.size());
+    {
+        std::ifstream testOpen(filepath);
+        if (!testOpen.is_open()) {
+            ShowMsgBox(gClient->GetRoot(), fMainGUI,
+                "Error", Form("Cannot open: %s", filepath),
+                kMBIconStop, kMBOk);
+            return;
         }
     }
 
-    // Data rows
-    int dataRowCount = 0;
-    while (std::getline(file, line)) {
-        if (line.empty()) continue;
-        /////// To avoid warning message //    
-        if (dataRowCount == 0) {
-        Warning("FileHandler", "No data rows found in file");
-        }
-        
-        std::stringstream ss(line);
-        std::string token;
-        std::vector<std::string> tokens;
-        
-        while (std::getline(ss, token, delim)) {
-            token.erase(0, token.find_first_not_of(" \t\r\n"));
-            token.erase(token.find_last_not_of(" \t\r\n") + 1);
-            if (!token.empty() && token.back() == '\r') token.pop_back();
-            tokens.push_back(token);
-        }
-        
-        // First data row — create default headers if not using header row
-        if (fCurrentData.data.empty() && !tokens.empty()) {
-            fCurrentData.data.resize(tokens.size());
-            if (fCurrentData.headers.empty()) {
-                for (size_t i = 0; i < tokens.size(); ++i) {
-                    fCurrentData.headers.push_back(Form("Col%zu", i));
-                }
-            }
-        }
-        
-        // Parse numeric values
-        size_t numCols = std::min(tokens.size(), fCurrentData.data.size());
-        for (size_t i = 0; i < numCols; ++i) {
-            try {
-                if (!tokens[i].empty()) {
-                    double val = std::stod(tokens[i]);
-                    fCurrentData.data[i].push_back(val);
-                }
-            } catch (...) { 
-                // Non-numeric value, skip
-            }
-        }
-        dataRowCount++;
-    }
-    file.close();
+    // NOTE: This used to be a hand-rolled parser that assumed every column
+    // was numeric — any non-numeric token (e.g. a string category column)
+    // was silently dropped via `catch(...) { /* skip */ }`, which desynced
+    // every column after it row-by-row. It also had a leftover debug check
+    // (`if (dataRowCount == 0) Warning(...)`) that fired on the very first
+    // data row regardless of whether any data was found.
+    //
+    // DataReader::ReadCSVFile already correctly classifies each column as
+    // numeric or string (string columns go to fCurrentData.stringHeaders /
+    // stringData, keeping row alignment intact), so delegate to it here
+    // instead of duplicating that logic.
+    bool ok = DataReader::ReadCSVFile(std::string(filepath), fCurrentData,
+                                       delim, (int)skipRows, (bool)useHeader);
 
     // CRITICAL: Check data validity and enable controls
-    bool hasData = !fCurrentData.data.empty() && fCurrentData.GetNumRows() > 0;
-    
+    bool hasData = ok && fCurrentData.GetNumRows() > 0;
+
     if (hasData) {
         fMainGUI->EnablePlotControls(kTRUE);
-        
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
-            "Success", Form("CSV loaded successfully!\n\nColumns: %d\nRows: %d",
+
+        std::string extra;
+        if (fCurrentData.GetNumStringColumns() > 0) {
+            extra = Form("\nString columns: %d (usable as labels / category axis)",
+                          fCurrentData.GetNumStringColumns());
+        }
+
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
+            "Success", Form("CSV loaded successfully!\n\nNumeric columns: %d\nRows: %d%s",
                 fCurrentData.GetNumColumns(),
-                fCurrentData.GetNumRows()),
+                fCurrentData.GetNumRows(),
+                extra.c_str()),
             kMBIconAsterisk, kMBOk);
     } else {
-        new TGMsgBox(gClient->GetRoot(), fMainGUI,
+        ShowMsgBox(gClient->GetRoot(), fMainGUI,
             "Warning", "No numeric data found in file.\n"
                        "Check delimiter and format.",
             kMBIconExclamation, kMBOk);
@@ -572,7 +523,7 @@ void FileHandler::ShowTreeInfo(TObject* obj, const char* name)
     std::cout << "=========================\n" << std::endl;
     
     // Show message box
-    new TGMsgBox(gClient->GetRoot(), fMainGUI,
+    ShowMsgBox(gClient->GetRoot(), fMainGUI,
         "TTree Information",
         Form("TTree: %s\n\nEntries: %lld\nBranches: %d\n\n"
              "See console for branch details.\n"

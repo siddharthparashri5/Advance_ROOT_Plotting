@@ -2,6 +2,7 @@
 
 #include <TGLayout.h>
 #include <TGMsgBox.h>
+#include "PopupControl.h"
 #include <TG3DLine.h>
 #include <TGFileDialog.h>
 #include <TSystem.h>
@@ -34,7 +35,7 @@ RootEntrySelector::RootEntrySelector(const TGWindow* p, const char* filename)
     // Open file
     fFile = TFile::Open(filename);
     if (!fFile || fFile->IsZombie()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "Error", Form("Cannot open ROOT file:\n%s", filename),
             kMBIconStop, kMBOk);
         return;
@@ -412,7 +413,7 @@ void RootEntrySelector::AddSelectionStep()
     std::cout << "Selected object index: " << selected << std::endl;
     
     if (selected < 0 || selected >= (Int_t)fObjectList.size()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "No Object", "Please select an object first",
             kMBIconExclamation, kMBOk);
         return;
@@ -427,7 +428,7 @@ void RootEntrySelector::AddSelectionStep()
         std::cout << "ERROR: Cannot retrieve object!" << std::endl;
         char errMsg[256];
         snprintf(errMsg, sizeof(errMsg), "Cannot retrieve: %s", objName.c_str());
-        new TGMsgBox(gClient->GetRoot(), this, "Error", errMsg,
+        ShowMsgBox(gClient->GetRoot(), this, "Error", errMsg,
             kMBIconStop, kMBOk);
         return;
     }
@@ -499,7 +500,7 @@ void RootEntrySelector::AddSelectionStep()
                     std::cout << "→ Using first branch: " << branchName << std::endl;
                     
                     // Warn user
-                    new TGMsgBox(gClient->GetRoot(), this,
+                    ShowMsgBox(gClient->GetRoot(), this,
                         "Info", Form("No branch selected.\nUsing first branch: %s", branchName.c_str()),
                         kMBIconAsterisk, kMBOk);
                 }
@@ -525,7 +526,7 @@ void RootEntrySelector::AddSelectionStep()
                          "Branch '%s' not found in tree '%s'!\n\n"
                          "Please select a valid branch from the dropdown.",
                          branchName.c_str(), objName.c_str());
-                new TGMsgBox(gClient->GetRoot(), this, "Error", errMsg,
+                ShowMsgBox(gClient->GetRoot(), this, "Error", errMsg,
                     kMBIconStop, kMBOk);
                 return;
             }
@@ -535,7 +536,7 @@ void RootEntrySelector::AddSelectionStep()
             std::cout << "→ Final objectName: " << step.objectName << std::endl;
         } else {
             std::cout << "ERROR: Could not determine branch name!" << std::endl;
-            new TGMsgBox(gClient->GetRoot(), this,
+            ShowMsgBox(gClient->GetRoot(), this,
                 "Error", "Could not determine which branch to plot.\n"
                         "Please select a branch from the dropdown.",
                 kMBIconStop, kMBOk);
@@ -606,7 +607,7 @@ void RootEntrySelector::PlotCurrentSelection()
     std::cout << "Object list size: " << fObjectList.size() << std::endl;
     
     if (selected < 0 || selected >= (Int_t)fObjectList.size()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "No Object", "Please select an object first",
             kMBIconExclamation, kMBOk);
         return;
@@ -615,7 +616,7 @@ void RootEntrySelector::PlotCurrentSelection()
     // Safety check 2: File
     if (!fFile) {
         std::cout << "ERROR: fFile is NULL!" << std::endl;
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "Error", "File not available",
             kMBIconStop, kMBOk);
         return;
@@ -631,7 +632,7 @@ void RootEntrySelector::PlotCurrentSelection()
         std::cout << "ERROR: Cannot retrieve object from file!" << std::endl;
         char errMsg[256];
         snprintf(errMsg, sizeof(errMsg), "Cannot retrieve: %s", objName.c_str());
-        new TGMsgBox(gClient->GetRoot(), this, "Error", errMsg,
+        ShowMsgBox(gClient->GetRoot(), this, "Error", errMsg,
             kMBIconStop, kMBOk);
         return;
     }
@@ -698,7 +699,7 @@ void RootEntrySelector::PlotCurrentSelection()
         snprintf(errMsg, sizeof(errMsg), 
                  "Object type %s not yet supported for plotting", 
                  obj->ClassName());
-        new TGMsgBox(gClient->GetRoot(), this, "Unsupported", errMsg,
+        ShowMsgBox(gClient->GetRoot(), this, "Unsupported", errMsg,
             kMBIconExclamation, kMBOk);
     }
     
@@ -711,7 +712,7 @@ void RootEntrySelector::PlotCurrentSelection()
 void RootEntrySelector::PlotEntireChain()
 {
     if (fSelectionChain.empty()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "Empty Chain", "No selection steps in chain",
             kMBIconExclamation, kMBOk);
         return;
@@ -752,7 +753,7 @@ TCanvas* RootEntrySelector::PlotHistogram(const SelectionStep& step)
         std::cout << "ERROR: Cannot retrieve histogram!" << std::endl;
         char errMsg[256];
         snprintf(errMsg, sizeof(errMsg), "Cannot retrieve: %s", step.objectName.c_str());
-        new TGMsgBox(gClient->GetRoot(), this, "Error", errMsg,
+        ShowMsgBox(gClient->GetRoot(), this, "Error", errMsg,
             kMBIconStop, kMBOk);
         return nullptr;
     }
@@ -835,7 +836,7 @@ TCanvas* RootEntrySelector::PlotTree(const SelectionStep& step)
         std::cout << "ERROR: Cannot retrieve tree!" << std::endl;
         char errMsg[256];
         snprintf(errMsg, sizeof(errMsg), "Cannot retrieve tree: %s", treeName.c_str());
-        new TGMsgBox(gClient->GetRoot(), this, "Error", errMsg,
+        ShowMsgBox(gClient->GetRoot(), this, "Error", errMsg,
             kMBIconStop, kMBOk);
         return nullptr;
     }
@@ -863,7 +864,7 @@ TCanvas* RootEntrySelector::PlotTree(const SelectionStep& step)
         if (branches && branches->GetEntries() > 0) {
             drawCmd = branches->At(0)->GetName();
         } else {
-            new TGMsgBox(gClient->GetRoot(), this,
+            ShowMsgBox(gClient->GetRoot(), this,
                 "Error", "No branches found in tree",
                 kMBIconStop, kMBOk);
             delete c;
@@ -972,7 +973,7 @@ TCanvas* RootEntrySelector::PlotWithChain(const std::vector<SelectionStep>& chai
         std::cout << "ERROR: Cannot retrieve object: " << objName << std::endl;
         char errMsg[256];
         snprintf(errMsg, sizeof(errMsg), "Cannot retrieve: %s", objName.c_str());
-        new TGMsgBox(gClient->GetRoot(), this, "Error", errMsg,
+        ShowMsgBox(gClient->GetRoot(), this, "Error", errMsg,
             kMBIconStop, kMBOk);
         delete c;
         return nullptr;
@@ -995,7 +996,7 @@ TCanvas* RootEntrySelector::PlotWithChain(const std::vector<SelectionStep>& chai
                     std::cout << "→ No branch specified, using first branch: " << branchName << std::endl;
                 } else {
                     std::cout << "ERROR: Cannot get first branch!" << std::endl;
-                    new TGMsgBox(gClient->GetRoot(), this,
+                    ShowMsgBox(gClient->GetRoot(), this,
                         "Error", "Cannot determine which branch to plot.\n"
                                 "Please select a specific branch.",
                         kMBIconStop, kMBOk);
@@ -1004,7 +1005,7 @@ TCanvas* RootEntrySelector::PlotWithChain(const std::vector<SelectionStep>& chai
                 }
             } else {
                 std::cout << "ERROR: Tree has no branches!" << std::endl;
-                new TGMsgBox(gClient->GetRoot(), this,
+                ShowMsgBox(gClient->GetRoot(), this,
                     "Error", "Tree has no branches to plot!",
                     kMBIconStop, kMBOk);
                 delete c;
@@ -1059,7 +1060,7 @@ TCanvas* RootEntrySelector::PlotWithChain(const std::vector<SelectionStep>& chai
         
         if (nDrawn == 0) {
             std::cout << "WARNING: No entries passed the selection cuts!" << std::endl;
-            new TGMsgBox(gClient->GetRoot(), this,
+            ShowMsgBox(gClient->GetRoot(), this,
                 "Warning", "No entries passed the selection cuts!\n"
                           "Check your cut formulas and entry ranges.",
                 kMBIconExclamation, kMBOk);
@@ -1069,7 +1070,7 @@ TCanvas* RootEntrySelector::PlotWithChain(const std::vector<SelectionStep>& chai
             std::cout << "  - Invalid branch name" << std::endl;
             std::cout << "  - Invalid cut formula syntax" << std::endl;
             std::cout << "  - Branch doesn't exist in tree" << std::endl;
-            new TGMsgBox(gClient->GetRoot(), this,
+            ShowMsgBox(gClient->GetRoot(), this,
                 "Error", Form("Draw command failed!\n\n"
                              "Branch: %s\n"
                              "Cut: %s\n\n"
@@ -1116,7 +1117,7 @@ TCanvas* RootEntrySelector::PlotWithChain(const std::vector<SelectionStep>& chai
         std::cout << "ERROR: Unsupported object type: " << obj->ClassName() << std::endl;
         char errMsg[256];
         snprintf(errMsg, sizeof(errMsg), "Unsupported object type: %s", obj->ClassName());
-        new TGMsgBox(gClient->GetRoot(), this, "Error", errMsg,
+        ShowMsgBox(gClient->GetRoot(), this, "Error", errMsg,
             kMBIconExclamation, kMBOk);
         delete c;
         return nullptr;
@@ -1209,7 +1210,7 @@ void RootEntrySelector::SaveChainToFile()
     
     std::ofstream file(fileInfo.fFilename);
     if (!file.is_open()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "Error", Form("Cannot write to: %s", fileInfo.fFilename),
             kMBIconStop, kMBOk);
         return;
@@ -1231,7 +1232,7 @@ void RootEntrySelector::SaveChainToFile()
     
     file.close();
     
-    new TGMsgBox(gClient->GetRoot(), this,
+    ShowMsgBox(gClient->GetRoot(), this,
         "Success", Form("Chain saved to:\n%s", fileInfo.fFilename),
         kMBIconAsterisk, kMBOk);
 }
@@ -1256,7 +1257,7 @@ void RootEntrySelector::LoadChainFromFile()
     
     std::ifstream file(fileInfo.fFilename);
     if (!file.is_open()) {
-        new TGMsgBox(gClient->GetRoot(), this,
+        ShowMsgBox(gClient->GetRoot(), this,
             "Error", Form("Cannot open: %s", fileInfo.fFilename),
             kMBIconStop, kMBOk);
         return;
@@ -1311,7 +1312,7 @@ void RootEntrySelector::LoadChainFromFile()
     char successMsg[256];
     snprintf(successMsg, sizeof(successMsg), 
              "Loaded %zu steps from chain file", fSelectionChain.size());
-    new TGMsgBox(gClient->GetRoot(), this,
+    ShowMsgBox(gClient->GetRoot(), this,
         "Success", successMsg,
         kMBIconAsterisk, kMBOk);
 }

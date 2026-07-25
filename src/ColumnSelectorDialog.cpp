@@ -6,7 +6,7 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
                                            const ColumnData* columnData,
                                            PlotConfig* plotConfig,
                                            bool* result)
-: TGTransientFrame(gClient->GetRoot(), parent, 620, 660),
+: TGTransientFrame(gClient->GetRoot(), parent, 640, 740),
   data(columnData),
   config(plotConfig),
   dialogResult(result)
@@ -125,6 +125,42 @@ ColumnSelectorDialog::ColumnSelectorDialog(const TGWindow* parent,
         }
     }
 
+    // ── Categorical X-axis (bar chart of a string column) — TH1 only ────────
+    {
+        TGHorizontalFrame* row = new TGHorizontalFrame(colFrame);
+        categoryColumnLabel = new TGLabel(row, "Category Axis (X):");
+        categoryColumnLabel->SetWidth(120);
+        row->AddFrame(categoryColumnLabel, new TGLayoutHints(kLHintsLeft|kLHintsCenterY,5,5,2,2));
+        categoryColumnCombo = new TGComboBox(row);
+        categoryColumnCombo->AddEntry("None (use X Column)", -1);
+        for (int i = 0; i < data->GetNumStringColumns(); ++i)
+            categoryColumnCombo->AddEntry(data->stringHeaders[i].c_str(), i);
+        categoryColumnCombo->Select(-1);
+        categoryColumnCombo->Resize(220, 20);
+        categoryColumnCombo->Connect("Selected(Int_t)", "ColumnSelectorDialog", this, "UpdateColumnVisibility()");
+        row->AddFrame(categoryColumnCombo, new TGLayoutHints(kLHintsLeft,5,5,2,2));
+        colFrame->AddFrame(row, new TGLayoutHints(kLHintsExpandX,5,5,2,2));
+
+        if (data->GetNumStringColumns() == 0) {
+            categoryColumnCombo->SetEnabled(kFALSE);
+        }
+    }
+    {
+        TGHorizontalFrame* row = new TGHorizontalFrame(colFrame);
+        categoryValueLabel = new TGLabel(row, "Category Value (Y):");
+        categoryValueLabel->SetWidth(120);
+        row->AddFrame(categoryValueLabel, new TGLayoutHints(kLHintsLeft|kLHintsCenterY,5,5,2,2));
+        categoryValueCombo = new TGComboBox(row);
+        categoryValueCombo->AddEntry("None (count entries)", -1);
+        for (int i = 0; i < data->GetNumColumns(); ++i)
+            categoryValueCombo->AddEntry(data->headers[i].c_str(), i);
+        categoryValueCombo->Select(-1);
+        categoryValueCombo->Resize(220, 20);
+        row->AddFrame(categoryValueCombo, new TGLayoutHints(kLHintsLeft,5,5,2,2));
+        colFrame->AddFrame(row, new TGLayoutHints(kLHintsExpandX,5,5,2,2));
+        categoryValueCombo->SetEnabled(kFALSE);
+    }
+
     colGroup->AddFrame(colFrame, new TGLayoutHints(kLHintsExpandX,5,5,5,5));
     mainFrame->AddFrame(colGroup, new TGLayoutHints(kLHintsExpandX,5,5,5,5));
 
@@ -190,6 +226,9 @@ void ColumnSelectorDialog::DoOK() {
     config->xErrColumn = xErrCombo->GetSelected();
     config->yErrColumn = yErrCombo->GetSelected();
     config->labelColumn = labelColumnCombo->GetSelected();  // -1 if none
+
+    config->categoryColumn      = categoryColumnCombo->GetSelected();
+    config->categoryValueColumn = categoryValueCombo->GetSelected();
 
     config->bins  = (int)binsXEntry->GetNumber();
     config->binsY = (int)binsYEntry->GetNumber();
@@ -278,18 +317,27 @@ void ColumnSelectorDialog::UpdateColumnVisibility()
     }
 
     // Column enable/disable
-    xColumnCombo->SetEnabled(graph || graphE || h1 || h2 || h3);
+    bool hasStringCols = data->GetNumStringColumns() > 0;
+    bool categorical = h1 && hasStringCols && (categoryColumnCombo->GetSelected() >= 0);
+
+    // When a categorical axis is active for a TH1, the numeric X Column is unused
+    xColumnCombo->SetEnabled((graph || graphE || h1 || h2 || h3) && !categorical);
     yColumnCombo->SetEnabled(graph || graphE || h2 || h3);
     zColumnCombo->SetEnabled(h3);
     xErrCombo->SetEnabled(graphE);
     yErrCombo->SetEnabled(graphE);
 
-    // Labels: only useful for TGraph/TGraphErrors/TH2/TH3 and only when string columns exist
-    bool labelsApplicable = (graph || graphE || h2 || h3);
-    bool hasStringCols = data->GetNumStringColumns() > 0;
+    // Labels: point-by-point TLatex annotations only make sense for TGraph/TGraphErrors
+    // (TH2/TH3 have bins, not discrete points, so labelColumn isn't consumed there)
+    bool labelsApplicable = (graph || graphE);
     labelColumnCombo->SetEnabled(labelsApplicable && hasStringCols);
     if (labelColumnLabel)
         gClient->NeedRedraw(labelColumnLabel);
+
+    // Categorical X-axis: only offered for TH1, and only when string columns exist
+    categoryColumnCombo->SetEnabled(h1 && hasStringCols);
+    categoryValueCombo->SetEnabled(categorical);
+    if (!categorical) categoryValueCombo->Select(-1);
 
     // Bin counts: X bins for any histogram, Y bins for 2D/3D, Z bins for 3D only
     // Note: TGNumberEntry uses SetState(), not SetEnabled() (that's for TGTextEntry/TGComboBox/buttons)
