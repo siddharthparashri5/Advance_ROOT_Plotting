@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Advanced ROOT Plotting
+GenericName=ROOT Plotting Tool
+Comment=Publication-ready ROOT plots from CSV/ROOT/text files, with a live ROOT/CINT prompt
+# Runs through a login shell (bash -lc) so ~/.bashrc / ~/.profile get sourced
+# first -- needed because a manually-built/non-system ROOT install typically
+# requires `thisroot.sh` to be sourced (for $ROOTSYS etc.), which only
+# normally happens in an interactive terminal session, not when the desktop
+# environment launches an app directly.
+Exec=bash -lc "@CMAKE_INSTALL_PREFIX@/bin/AdvancedPlotGUIApp"
+Icon=advancedplotgui
+Terminal=true
+Categories=Science;DataVisualization;Education;
+StartupWMClass=AdvancedPlotGUIApp
+Keywords=ROOT;CERN;plotting;histogram;physics;data analysis;
