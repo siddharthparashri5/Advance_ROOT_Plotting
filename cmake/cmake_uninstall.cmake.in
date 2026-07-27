@@ -1,0 +1,57 @@
+## This file drives the `make uninstall` / `ninja uninstall` target.
+## CMake has no built-in uninstall support, so this is the standard
+## community recipe (read back CMAKE_CURRENT_BINARY_DIR/install_manifest.txt,
+## generated automatically by CMake after `install()` runs, and remove every
+## file listed in it), extended to also clean up the extra files our
+## install(CODE ...) steps place that AREN'T tracked in install_manifest.txt
+## (install(CODE ...) is arbitrary script, not a tracked install() call, so
+## CMake has no way to know about those files on its own).
+
+if(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: @CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+endif()
+
+file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
+string(REGEX REPLACE "\n" ";" files "${files}")
+foreach(file ${files})
+    message(STATUS "Uninstalling: $ENV{DESTDIR}${file}")
+    if(IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
+        execute_process(
+            COMMAND "@CMAKE_COMMAND@" -E remove "$ENV{DESTDIR}${file}"
+            OUTPUT_VARIABLE rm_out
+            RESULT_VARIABLE rm_retval
+        )
+        if(NOT "${rm_retval}" STREQUAL 0)
+            message(FATAL_ERROR "Problem removing: $ENV{DESTDIR}${file}")
+        endif()
+    else()
+        message(STATUS "File does not exist (already removed?): $ENV{DESTDIR}${file}")
+    endif()
+endforeach()
+
+# --- Extra files not tracked in install_manifest.txt --------------------
+# The dictionary pcm/rootmap "canonical name" copies (and any stale
+# libAdvancedPlotGUIDict* files from before the naming fix) are placed via
+# install(CODE ...), so they never made it into the manifest above.
+file(GLOB _extra_dict_files
+    "@CMAKE_INSTALL_PREFIX@/lib/libAdvancedPlotGUI*_rdict.pcm"
+    "@CMAKE_INSTALL_PREFIX@/lib/libAdvancedPlotGUI*.rootmap"
+)
+foreach(file ${_extra_dict_files})
+    message(STATUS "Uninstalling: ${file}")
+    file(REMOVE "${file}")
+endforeach()
+
+# --- Best-effort desktop/icon cache refresh ------------------------------
+find_program(_UPDATE_DESKTOP_DB update-desktop-database)
+if(_UPDATE_DESKTOP_DB)
+    execute_process(COMMAND "${_UPDATE_DESKTOP_DB}" "@CMAKE_INSTALL_PREFIX@/share/applications"
+                     ERROR_QUIET OUTPUT_QUIET)
+endif()
+find_program(_UPDATE_ICON_CACHE gtk-update-icon-cache)
+if(_UPDATE_ICON_CACHE)
+    execute_process(COMMAND "${_UPDATE_ICON_CACHE}" -f -t "@CMAKE_INSTALL_PREFIX@/share/icons/hicolor"
+                     ERROR_QUIET OUTPUT_QUIET)
+endif()
+
+message(STATUS "Uninstall complete.")
