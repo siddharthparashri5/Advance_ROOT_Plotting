@@ -112,6 +112,17 @@ target_include_directories(AdvancedPlotGUI
 set_target_properties(AdvancedPlotGUI PROPERTIES
     OUTPUT_NAME AdvancedPlotGUI
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+    # NOTE: modern Linux toolchains emit DT_RUNPATH by default (not the older
+    # DT_RPATH), and RUNPATH is NOT transitively inherited -- it only helps
+    # resolve *this library's own* direct dependencies (e.g. libGraf.so,
+    # libCore.so, ...), not dependencies of things that depend on it. So
+    # libAdvancedPlotGUI.so needs its own rpath pointing at ROOT's lib dir;
+    # setting this only on the AdvancedPlotGUIApp executable (as before)
+    # left this library relying entirely on $LD_LIBRARY_PATH being set in
+    # the environment (e.g. via thisroot.sh), which isn't guaranteed when
+    # launched outside an interactive shell (app drawer, login-shell, etc.).
+    BUILD_RPATH "${ROOT_LIBRARY_DIR}"
+    INSTALL_RPATH "${ROOT_LIBRARY_DIR}"
 )
 
 # Optional compile flags to reduce ROOT macro warnings
