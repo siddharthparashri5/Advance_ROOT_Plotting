@@ -199,6 +199,65 @@ install(CODE "
 ")
 
 # ============================================================================
+# Desktop integration -- app drawer / applications menu entry + icon
+# ============================================================================
+# Exec= needs the real installed path, which depends on CMAKE_INSTALL_PREFIX,
+# so the .desktop file is generated from a template (@CMAKE_INSTALL_PREFIX@
+# substituted) rather than shipped as a static file.
+configure_file(
+    ${CMAKE_SOURCE_DIR}/resources/AdvancedPlotGUIApp.desktop.in
+    ${CMAKE_CURRENT_BINARY_DIR}/AdvancedPlotGUIApp.desktop
+    @ONLY
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/AdvancedPlotGUIApp.desktop
+    DESTINATION share/applications
+)
+
+# Icon: installed both under the standard hicolor icon theme path (used by
+# GNOME/KDE/XFCE icon theming + caching) and the older share/pixmaps fallback
+# (still checked by essentially every desktop environment), so it shows up
+# regardless of which convention the user's desktop prefers.
+install(FILES ${CMAKE_SOURCE_DIR}/resources/advancedplotgui.png
+    DESTINATION share/icons/hicolor/256x256/apps
+)
+install(FILES ${CMAKE_SOURCE_DIR}/resources/advancedplotgui.png
+    DESTINATION share/pixmaps
+)
+
+# Best-effort refresh so the app shows up immediately without a logout/login.
+# Both tools are optional -- silently skipped if not present (e.g. minimal
+# desktop-less systems, or DESTDIR-staged packaging builds).
+install(CODE "
+    find_program(_UPDATE_DESKTOP_DB update-desktop-database)
+    if(_UPDATE_DESKTOP_DB)
+        execute_process(COMMAND \${_UPDATE_DESKTOP_DB} \"${CMAKE_INSTALL_PREFIX}/share/applications\"
+                         ERROR_QUIET OUTPUT_QUIET)
+    endif()
+    find_program(_UPDATE_ICON_CACHE gtk-update-icon-cache)
+    if(_UPDATE_ICON_CACHE)
+        execute_process(COMMAND \${_UPDATE_ICON_CACHE} -f -t \"${CMAKE_INSTALL_PREFIX}/share/icons/hicolor\"
+                         ERROR_QUIET OUTPUT_QUIET)
+    endif()
+")
+
+# ============================================================================
+# Uninstall target -- CMake has no built-in one
+# ============================================================================
+# Usage: sudo make uninstall  (or: sudo cmake --build . --target uninstall)
+if(NOT TARGET uninstall)
+    configure_file(
+        "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY
+    )
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+        COMMENT "Uninstalling AdvancedPlotGUI"
+    )
+endif()
+
+# ============================================================================
 # Summary
 # ============================================================================
 message(STATUS "")
