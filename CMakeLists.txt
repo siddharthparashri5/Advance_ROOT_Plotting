@@ -78,6 +78,7 @@ set(DICT_HEADERS
 ROOT_GENERATE_DICTIONARY(
     AdvancedPlotGUIDict
     ${DICT_HEADERS}
+    MODULE AdvancedPlotGUI
     #LINKDEF include/LinkDef.h
 )
 
@@ -160,11 +161,13 @@ install(TARGETS AdvancedPlotGUI AdvancedPlotGUIApp
 
 # ROOT's dictionary generation also produces a *_rdict.pcm (and often a
 # .rootmap) file next to the library -- these are needed at runtime and must
-# ship alongside libAdvancedPlotGUI.so, but their exact name depends on the
-# ROOT version/macro implementation and isn't known until after the build
-# runs. install(CODE ...) below globs for them at *install time* (not
-# configure time, since they don't exist yet when CMake first runs) and
-# copies whatever it finds into the same lib/ directory.
+# ship alongside libAdvancedPlotGUI.so, but their exact generated name has
+# proven to vary across ROOT versions/macro implementations (some honor the
+# MODULE argument above and name it libAdvancedPlotGUI_rdict.pcm; others
+# still name it after the dictionary target, libAdvancedPlotGUIDict_rdict.pcm).
+# So: install whatever gets generated (whatever it's named), AND additionally
+# force a copy under the exact canonical name ROOT's runtime looks for when
+# it loads libAdvancedPlotGUI.so -- this makes the install correct either way.
 install(CODE "
     file(GLOB _AdvancedPlotGUI_PCM_FILES
         \"${CMAKE_CURRENT_BINARY_DIR}/*.pcm\"
@@ -173,6 +176,26 @@ install(CODE "
         message(STATUS \"Installing dictionary file: \${_f}\")
         file(INSTALL DESTINATION \"${CMAKE_INSTALL_PREFIX}/lib\" TYPE FILE FILES \"\${_f}\")
     endforeach()
+
+    # Defensive fallback -- guarantee the canonical filenames exist too,
+    # regardless of what rootcling actually called them.
+    file(GLOB _AdvancedPlotGUI_ANY_PCM \"${CMAKE_CURRENT_BINARY_DIR}/*_rdict.pcm\")
+    list(LENGTH _AdvancedPlotGUI_ANY_PCM _n_pcm)
+    if(_n_pcm GREATER 0)
+        list(GET _AdvancedPlotGUI_ANY_PCM 0 _src_pcm)
+        message(STATUS \"Ensuring canonical pcm name from: \${_src_pcm}\")
+        file(INSTALL DESTINATION \"${CMAKE_INSTALL_PREFIX}/lib\" TYPE FILE
+             RENAME libAdvancedPlotGUI_rdict.pcm FILES \"\${_src_pcm}\")
+    endif()
+
+    file(GLOB _AdvancedPlotGUI_ANY_ROOTMAP \"${CMAKE_CURRENT_BINARY_DIR}/*.rootmap\")
+    list(LENGTH _AdvancedPlotGUI_ANY_ROOTMAP _n_rootmap)
+    if(_n_rootmap GREATER 0)
+        list(GET _AdvancedPlotGUI_ANY_ROOTMAP 0 _src_rootmap)
+        message(STATUS \"Ensuring canonical rootmap name from: \${_src_rootmap}\")
+        file(INSTALL DESTINATION \"${CMAKE_INSTALL_PREFIX}/lib\" TYPE FILE
+             RENAME libAdvancedPlotGUI.rootmap FILES \"\${_src_rootmap}\")
+    endif()
 ")
 
 # ============================================================================
